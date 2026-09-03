@@ -97,13 +97,30 @@
     -->
     <data-set name="records" display-name-key="Records_DataSet_Name" />
 
+    <!--
+      NO `default-value` HERE, AND THAT IS THE DECISION RATHER THAN AN OMISSION.
+
+      **A `default-value` on an optional property is not a default, it is an
+      override.** The platform hands the value down whether or not the maker ever
+      touched the property, so there is no unset state left to express — and this
+      property mirrors something the host has already decided.
+      `dataset.paging.pageSize` is the size the host is actually retrieving with:
+      on a main grid the user's own *Rows per page* personalisation, on a subgrid
+      what the maker set in the form designer, in canvas the platform default.
+
+      `pcf-row-commands` shipped `default-value="25"` and replaced all three on
+      every install. Unset, this control adopts what the platform is already doing
+      and never calls `setPageSize`; set, it overrides.
+
+      Only the types carrying a null can say this at all — `Whole.None` is
+      `number | null`, which is exactly what a `TwoOptions` is not.
+    -->
     <property name="pageSize"
               display-name-key="PageSize_Name"
               description-key="PageSize_Desc"
               of-type="Whole.None"
               usage="input"
-              required="false"
-              default-value="25" />
+              required="false" />
 
     <!--
       Notified *before* the record is opened, so the value is observable even on

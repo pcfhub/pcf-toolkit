@@ -164,7 +164,30 @@ export class LinkColumn implements ComponentFramework.StandardControl<IInputs, I
      * asked yet" from "the answer changed".
      */
     private applyPageSize(context: ComponentFramework.Context<IInputs>, dataset: DataSet): void {
-        const raw = context.parameters.pageSize.raw ?? 25;
+        const raw = context.parameters.pageSize.raw;
+
+        /*
+         * **The platform already has a page size, and it is usually the right
+         * one.** `paging.pageSize` is the size the host is actually retrieving
+         * with — a main grid's *Rows per page* personalisation, a subgrid's
+         * form-designer setting, the canvas default.
+         *
+         * So the property carries no `default-value`, and this is the half of
+         * that decision written in code: unset, adopt what the host is doing and
+         * **never call `setPageSize` at all**; set, override. Adopting still
+         * records the number, because the page slice and the pager label both
+         * need to know how big a page is — reading it is not the same as asking
+         * for it. See the manifest for why the default was removed.
+         */
+        if (raw === null || raw === undefined) {
+            // `0` is "the host did not say", not "one row per page". A fallback
+            // of `1` is a page size the platform never has, and the slice would
+            // cut the view down to it — twenty rows arriving and one drawn.
+            this.appliedPageSize = dataset.paging.pageSize > 0 ? dataset.paging.pageSize : 0;
+
+            return;
+        }
+
         const wanted = Math.min(Math.max(Math.trunc(raw), 1), MAX_PAGE_SIZE);
 
         if (wanted === this.appliedPageSize) {
@@ -264,7 +287,9 @@ export class LinkColumn implements ComponentFramework.StandardControl<IInputs, I
      * point is that earlier records stay on screen — should not call this.
      */
     private currentPage(ids: string[]): string[] {
-        if (ids.length <= this.appliedPageSize) {
+        // `0` is "the host reported no page size" — see `applyPageSize`.
+        // There is no page to cut to, so draw everything that arrived.
+        if (this.appliedPageSize <= 0 || ids.length <= this.appliedPageSize) {
             return ids;
         }
 

@@ -326,14 +326,51 @@ const sortBy = (view, columnName, index) => {
 const view = bind({});
 
 /*
- * A control that mutates in `updateView` without a guard never stops. Two
- * passes is the settled number — one render, then one more for the page size it
- * asked for on the first — and the limit being reached is the loop.
+ * A control that mutates in `updateView` without a guard never stops, and the
+ * limit being reached is the loop.
+ *
+ * **One pass, where this used to be two.** The second pass was the page size:
+ * the property carried `default-value="25"`, so every mount called
+ * `setPageSize` and `refresh()` and cost a round trip — while replacing the
+ * *Rows per page* the user had set on the grid. With no default there is
+ * nothing to ask for, and the control settles on the first pass.
  */
 check(
     'settles instead of refreshing forever',
-    !view.driven.looping && view.driven.passes === 2,
+    !view.driven.looping && view.driven.passes === 1,
     `${view.driven.passes} passes, calls: ${view.calls().join(' ')}`,
+);
+
+/*
+ * The assertion about a call that must **not** happen — `pcf-row-commands`
+ * shipped this override and had to be released twice to take it back out.
+ */
+check(
+    'an unset page size overrides nothing — the host is already paging',
+    view.calls().filter((call) => call.startsWith('setPageSize')).length === 0,
+    view.calls().join(' '),
+);
+
+const overriding = bind({ inputs: { pageSize: 3 } });
+
+check(
+    'a page size the maker did set is asked for once and then left alone',
+    overriding.calls().filter((call) => call.startsWith('setPageSize')).length === 1,
+    overriding.calls().join(' '),
+);
+
+/*
+ * A main grid answers the width and never the height — `-1` for the life of the
+ * control, however politely it asks. A control that waits for a positive number
+ * waits forever, which is how `pcf-row-commands` ran its rows off the bottom of
+ * a page and took the pager with them.
+ */
+const unmeasured = bind({ width: 900, quirks: { heightUnmeasured: true } });
+
+check(
+    'renders on a host that measures a width and never a height',
+    unmeasured.handle.context.mode.allocatedHeight === -1 && !unmeasured.driven.looping,
+    `allocatedHeight ${unmeasured.handle.context.mode.allocatedHeight}`,
 );
 
 /*
