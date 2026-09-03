@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Display names and descriptions for everything declared in
+    ControlManifest.Input.xml. PCFHub reads the manifest, so these strings are
+    what appear in the component's API reference on the hub as well as in the
+    maker's properties pane.
+
+    Copy this file to add a language — LinkField.3082.resx for Spanish, and so
+    on — then list it under <resources> in the manifest.
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+
+  <data name="value_Name" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="value_Desc" xml:space="preserve">
+    <value>The column this control reads and writes.</value>
+  </data>
+
+  <data name="placeholder_Name" xml:space="preserve">
+    <value>Placeholder</value>
+  </data>
+  <data name="placeholder_Desc" xml:space="preserve">
+    <value>Hint text shown while the field is empty.</value>
+  </data>
+  <!--
+    Runtime strings, read with context.resources.getString(). Anything the user
+    can read belongs here rather than as a literal in index.ts or as an input
+    property a maker hand-translates per instance.
+
+    Add a language by copying this file — LinkField.3082.resx for Spanish,
+    1036 French, 1031 German, 1041 Japanese — with the SAME key set, then
+    listing each one under <resources> in the manifest. A key missing from one
+    language falls back to the key name in that language only, which nobody
+    notices until a customer does.
+  -->
+  <data name="LinkField_NoAccess" xml:space="preserve">
+    <value>You do not have access to this value.</value>
+  </data>
+  <data name="LinkField_Name" xml:space="preserve">
+    <value>Link field</value>
+  </data>
+  <data name="LinkField_Desc" xml:space="preserve">
+    <value>Shows a URL column as a link you can follow.</value>
+  </data>
+  <data name="linkLabel_Name" xml:space="preserve">
+    <value>Link text</value>
+  </data>
+  <data name="linkLabel_Desc" xml:space="preserve">
+    <value>Text to show instead of the address. Empty shows the site name.</value>
+  </data>
+  <data name="LinkField_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="LinkField_OpenNamed" xml:space="preserve">
+    <value>Open {0}</value>
+  </data>
+  <data name="LinkField_Invalid" xml:space="preserve">
+    <value>Not a web address. Links must start with http:// or https://.</value>
+  </data>
+  <data name="LinkField_Offline" xml:space="preserve">
+    <value>You appear to be offline. Opening the link may not work.</value>
+  </data>
+  <data name="LinkField_NotPersisted" xml:space="preserve">
+    <value>This edit will not be kept if you switch tabs.</value>
+  </data>
+</root>

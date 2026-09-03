@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    French (fr-FR, LCID 1036).
+
+    Keep the key set identical to LinkColumn.1033.resx. A key missing here does
+    not fall back to English — it renders as the key name, and only for users in
+    this language, so nobody who reads English ever sees it. `npm run check`
+    compares the two.
+
+    Link Column and Render a URL column as a link in every row of a view. are filled by `npm run setup` with the English
+    title and tagline you gave it, because the template cannot know them. They
+    are the two values in this file worth translating by hand.
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="LinkColumn_Name" xml:space="preserve">
+    <value>Link Column</value>
+  </data>
+  <data name="LinkColumn_Desc" xml:space="preserve">
+    <value>Render a URL column as a link in every row of a view.</value>
+  </data>
+  <data name="Records_DataSet_Name" xml:space="preserve">
+    <value>Enregistrements</value>
+  </data>
+  <data name="PageSize_Name" xml:space="preserve">
+    <value>Taille de page</value>
+  </data>
+  <data name="PageSize_Desc" xml:space="preserve">
+    <value>Nombre de lignes à demander par page. La plateforme peut plafonner les valeurs élevées.</value>
+  </data>
+  <data name="OpenedRecordId_Name" xml:space="preserve">
+    <value>ID de l'enregistrement ouvert</value>
+  </data>
+  <data name="OpenedRecordId_Desc" xml:space="preserve">
+    <value>L'identifiant de la ligne ouverte le plus récemment.</value>
+  </data>
+  <data name="LinkColumn_Loading" xml:space="preserve">
+    <value>Chargement des enregistrements…</value>
+  </data>
+  <data name="LinkColumn_Empty" xml:space="preserve">
+    <value>Aucun enregistrement.</value>
+  </data>
+  <data name="LinkColumn_NoColumns" xml:space="preserve">
+    <value>Aucune colonne n'est sélectionnée pour cette table.</value>
+  </data>
+  <data name="LinkColumn_Error" xml:space="preserve">
+    <value>Cette vue n'a pas pu être chargée.</value>
+  </data>
+  <data name="LinkColumn_Previous" xml:space="preserve">
+    <value>Page précédente</value>
+  </data>
+  <data name="LinkColumn_Next" xml:space="preserve">
+    <value>Page suivante</value>
+  </data>
+  <data name="LinkColumn_PageStatus" xml:space="preserve">
+    <value>Page {0}</value>
+  </data>
+  <data name="LinkColumn_RangeStatus" xml:space="preserve">
+    <value>{0}–{1} sur {2}</value>
+  </data>
+  <data name="LinkColumn_SortBy" xml:space="preserve">
+    <value>Trier par {0}</value>
+  </data>
+  <data name="LinkColumn_OpenRecord" xml:space="preserve">
+    <value>Ouvrir {0}</value>
+  </data>
+  <data name="LinkColumn_OpenLink" xml:space="preserve">
+    <value>Ouvrir {0}</value>
+  </data>
+</root>

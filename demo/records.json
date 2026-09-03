@@ -1,0 +1,113 @@
+{
+    "targetEntityType": "account",
+    "title": "Active Accounts",
+    "columns": [
+        {
+            "name": "name",
+            "displayName": "Account name",
+            "dataType": "SingleLine.Text",
+            "alias": "name",
+            "order": 0,
+            "visualSizeFactor": 200,
+            "isPrimary": true
+        },
+        {
+            "name": "accountnumber",
+            "displayName": "Account number",
+            "dataType": "SingleLine.Text",
+            "alias": "accountnumber",
+            "order": 1,
+            "visualSizeFactor": 120
+        },
+        {
+            "name": "primarycontactname",
+            "displayName": "Primary contact",
+            "dataType": "SingleLine.Text",
+            "alias": "primarycontactname",
+            "order": 2,
+            "visualSizeFactor": 150
+        },
+        {
+            "name": "statecode",
+            "displayName": "Status",
+            "dataType": "OptionSet",
+            "alias": "statecode",
+            "order": 3,
+            "visualSizeFactor": 90
+        }
+    ],
+    "records": [
+        {
+            "id": "a0001",
+            "values": {
+                "name": "Fabrikam Manufacturing",
+                "accountnumber": "ACC-1042",
+                "primarycontactname": "Dana Whitfield",
+                "statecode": "Active"
+            }
+        },
+        {
+            "id": "a0002",
+            "values": {
+                "name": "Contoso Logistics",
+                "accountnumber": "ACC-1087",
+                "primarycontactname": "Ravi Menon",
+                "statecode": "Active"
+            }
+        },
+        {
+            "id": "a0003",
+            "values": {
+                "name": "Northwind Traders",
+                "accountnumber": "ACC-1103",
+                "primarycontactname": "Erin Boyle",
+                "statecode": "Active"
+            }
+        },
+        {
+            "id": "a0004",
+            "values": {
+                "name": "Adventure Works Cycles",
+                "accountnumber": "ACC-1155",
+                "primarycontactname": "Marcus Feld",
+                "statecode": "Active"
+            }
+        },
+        {
+            "id": "a0005",
+            "values": {
+                "name": "Litware Consulting",
+                "accountnumber": "ACC-1178",
+                "primarycontactname": "Priya Raman",
+                "statecode": "Inactive"
+            }
+        },
+        {
+            "id": "a0006",
+            "values": {
+                "name": "Tailspin Toys",
+                "accountnumber": "ACC-1201",
+                "primarycontactname": "Owen Brackett",
+                "statecode": "Active"
+            }
+        },
+        {
+            "id": "a0007",
+            "values": {
+                "name": "Proseware Systems",
+                "accountnumber": "ACC-1233",
+                "primarycontactname": "Alice Nakamura",
+                "statecode": "Active"
+            }
+        },
+        {
+            "id": "a0008",
+            "values": {
+                "name": "Wingtip Analytics",
+                "accountnumber": "ACC-1260",
+                "primarycontactname": "Tomas Ehrlich",
+                "statecode": "Active"
+            }
+        }
+    ]
+}

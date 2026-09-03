@@ -1,0 +1,24 @@
+name: Build
+
+# The steps live in build-reusable.yml, shared by every component repository, so
+# a fix to the build reaches all of them instead of the one that happened to be
+# edited. What stays here is only what differs between repositories.
+#
+# Pinned to @v1 rather than @main — a build that can change without
+# warning is one you cannot bisect. The shared workflow lives in
+# pcfhub/_template; open an issue there rather than forking a copy back
+# into this repository, which is the drift it was built to end.
+#
+# Every input it takes defaults to the strict value. If this repository
+# ever needs to skip a step — no dev/ directory, so no smoke suite —
+# say so here with a comment, where a reader will find it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: pcfhub/_template/.github/workflows/build-reusable.yml@v1

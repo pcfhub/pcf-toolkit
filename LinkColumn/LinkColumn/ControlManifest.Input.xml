@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <!--
+    The version here is what the Power Platform upgrades on, and the release
+    workflow refuses to publish a tag that disagrees with it. Bump this in the
+    same commit as the tag.
+  -->
+  <control namespace="PCFHub"
+           constructor="LinkColumn"
+           version="0.1.0"
+           display-name-key="LinkColumn_Name"
+           description-key="LinkColumn_Desc"
+           control-type="standard">
+
+    <!--
+      Leave this disabled unless the control calls a third-party service.
+
+      `enabled="true"` makes the control **premium**, and premium is a cost
+      somebody else pays: every end user of an app containing this component
+      then needs a Power Apps licence rather than an Office 365 one. Nothing
+      fails to build, nothing warns at install, and the person who finds out is
+      not the person who typed it — so this is worth confirming with whoever
+      owns the control rather than flipping to make a `fetch` work.
+
+      When it is genuinely enabled, list every domain. `<domain>` children are
+      declarative and can be listed under `enabled="false"` too, which is the
+      schema's own second example; it is the `enabled` attribute alone that
+      carries the licensing consequence.
+
+          <external-service-usage enabled="true">
+            <domain>tile.example.com</domain>
+          </external-service-usage>
+
+      `npm run check` fails on `enabled="true"` with no domain, and warns on
+      `enabled="true"` at all.
+    -->
+    <external-service-usage enabled="false" />
+
+    <!--
+      A dataset control binds a collection rather than a column.
+
+      This one declares **no `property-set` roles**, which is a decision worth
+      making deliberately rather than inheriting:
+
+        Declare roles when the control assigns meaning to specific columns — a
+        chip has a label and a colour, a map pin has a latitude and a longitude.
+        Each role is a named slot in this file, so the arity is fixed at whatever
+        you write here.
+
+        Declare none, and read `dataset.columns`, when the control renders
+        whatever it is given. A table is the clearest case: there is no way to
+        declare "however many columns the view has", and the metadata a layout
+        needs — order, visualSizeFactor, isPrimary, isHidden, disableSorting —
+        exists on real view columns and nowhere else.
+
+      If you add roles, add `::props-table{kind=dataset_column}` to docs/api.md.
+      With none, leave it out: the directive renders an empty table, which reads
+      as "this control has no dataset columns" rather than as a missing section.
+
+      And if you add roles, **change demo/records.json so each column's `alias`
+      differs from its `name`.** A role is found on the column by `alias` and
+      read off the record by `name`, and getting that backwards renders nothing
+      at all against a real view. The fixture here sets both to the same string,
+      which is correct with no roles and is exactly what let that bug reach
+      production in pcf-tag-list: the demo looked right because either order
+      worked against it. Realistic values — `"name": "cr123_tagname"` with
+      `"alias": "labelField"` — make the mistake fail where you can see it.
+
+        <data-set name="records" display-name-key="Records_DataSet_Name">
+          <property-set name="labelField" display-name-key="LabelField_Name"
+                        of-type="SingleLine.Text" usage="bound" required="true" />
+        </data-set>
+
+      The other attribute worth knowing is `cds-data-set-options`, which decides
+      whether a model-driven subgrid keeps its own chrome. Off by default; add it
+      to show any of the three:
+
+        <data-set name="records" display-name-key="Records_DataSet_Name"
+                  cds-data-set-options="displayCommandBar:true;displayViewSelector:true;displayQuickFind:true" />
+
+      It belongs on `<data-set>`, not on `<control>` — it configures the host's
+      furniture, which sounds like a control-level concern and is not.
+
+      Turn the **command bar** on if the control calls `setSelectedRecordIds()`:
+      without it, selection is a value the control reports and nothing acts on.
+      The **view selector** is only sensible if the control renders whatever
+      columns arrive, since switching view changes them. A control with fixed
+      property-set roles usually wants all three off, because its layout does not
+      survive the user picking a different view.
+
+      Two traps. The attribute's value is typed as a plain string, so a
+      misspelled option compiles clean and silently does nothing. And the
+      Microsoft reference marks the attribute `Required: Yes`, which the tooling
+      contradicts — it is optional in fact, and absent means off.
+
+      Model-driven only; canvas apps ignore it.
+    -->
+    <data-set name="records" display-name-key="Records_DataSet_Name" />
+
+    <property name="pageSize"
+              display-name-key="PageSize_Name"
+              description-key="PageSize_Desc"
+              of-type="Whole.None"
+              usage="input"
+              required="false"
+              default-value="25" />
+
+    <!--
+      Notified *before* the record is opened, so the value is observable even on
+      a host where opening does nothing — which is the canvas case.
+    -->
+    <property name="openedRecordId"
+              display-name-key="OpenedRecordId_Name"
+              description-key="OpenedRecordId_Desc"
+              of-type="SingleLine.Text"
+              usage="output" />
+
+    <resources>
+      <code path="index.ts" order="1" />
+      <css path="css/LinkColumn.css" order="1" />
+      <!--
+        Every language the control ships.
+
+        A .resx that exists on disk but is not listed here is not shipped, and
+        nothing warns — the file is simply never packed, and the control runs
+        in English for that locale while the repository looks translated.
+        `npm run check` catches both that and a key missing from a language.
+
+        Drop the ones you will not maintain. A stale translation is worse than
+        an honest fallback to English, and every key added to 1033 is a key
+        owed to each file listed here.
+
+        THE ORDER IS DELIBERATE AND 1033 GOES LAST. `pcf-start` picks the .resx
+        by manifest order rather than by locale: it reads whichever file is
+        listed *last* and ignores the LCID and the browser language entirely.
+        The platform itself ignores the order completely — a real app resolves
+        from the user's provisioned language — so `npm start` is the only thing
+        in the world that reads this order, and it is ordered for it. Listing
+        1033 first is the tidier-looking arrangement and it makes `npm start`
+        render the whole control in Japanese, which reads as a broken build.
+
+        The consequence to remember: ADD A NEW LANGUAGE ABOVE THIS LINE, not
+        below it. Appending a sixth file after 1033 silently moves the harness
+        to that language, and the symptom shows up in a `npm start` session
+        nobody connects to a manifest edit.
+      -->
+      <resx path="strings/LinkColumn.3082.resx" version="1.0.0" />
+      <resx path="strings/LinkColumn.1036.resx" version="1.0.0" />
+      <resx path="strings/LinkColumn.1031.resx" version="1.0.0" />
+      <resx path="strings/LinkColumn.1041.resx" version="1.0.0" />
+      <resx path="strings/LinkColumn.1033.resx" version="1.0.0" />
+    </resources>
+
+    <!--
+      Uncomment only the features actually used. Each one becomes a permission
+      prompt for the maker installing the control.
+
+      Note that `openDatasetItem()` needs none of these — it is a method on the
+      dataset itself, not on context.navigation.
+
+    <feature-usage>
+      <uses-feature name="Utility" required="true" />
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+    -->
+  </control>
+</manifest>

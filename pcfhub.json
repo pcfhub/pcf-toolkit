@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "slug": "pcf-toolkit",
+  "name": "Link Toolkit",
+  "tagline": "Render a URL column as a real link, on a form and in a view.",
+  "category": "utilities",
+  "tags": [
+    "link",
+    "url",
+    "navigation",
+    "dataset",
+    "field"
+  ],
+  "control": {
+    "namespace": "PCFHub",
+    "constructor": "LinkField",
+    "type": "field",
+    "framework": "standard",
+    "manifestPath": "LinkField/LinkField/ControlManifest.Input.xml"
+  },
+  "links": {
+    "homepage": "https://github.com/pcfhub/pcf-toolkit",
+    "support": "https://github.com/pcfhub/pcf-toolkit/issues",
+    "license": "MIT"
+  },
+  "docs": {
+    "path": "docs"
+  },
+  "media": {
+    "logo": "media/logo.png",
+    "screenshots": []
+  },
+  "demo": {
+    "fidelity": "limited",
+    "limitations": [
+      "Opening a link is a platform call. The demo records that LinkField asked to open a URL but nothing opens — navigation.openUrl is the host's, and the hub's harness is not a Power Apps host.",
+      "Keeping an unsaved edit across a form tab switch needs mode.setControlState, which the harness does not persist. The control reports that it could not save rather than pretending it did.",
+      "This repository ships two controls — LinkField (field) and LinkColumn (dataset) — in one solution. PCFHub publishes one component per repository, so the demo and the API reference below cover LinkField only. Both are installed by the download.",
+      "The demo view is a fixture of twelve rows on a single page. A real view pages, sorts and filters on the server."
+    ],
+    "presets": [],
+    "bundle": "out/controls/LinkField/bundle.js",
+    "styles": [
+      "out/controls/LinkField/css/LinkField.css"
+    ]
+  }
+}

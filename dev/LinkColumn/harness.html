@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Link Column — dev harness</title>
+
+        <!--
+            A local stand-in for a bound view, for the thing no other harness
+            gives a dataset control: more than one page.
+
+            PCFHub's demo harness seeds a single page, reports no next or
+            previous page, and discards sorting between renders — which is why
+            every dataset control on the hub is published at
+            `demo.fidelity: "limited"`. `npm start` will bind a CSV, but it will
+            not put the control on page three of a sorted view and change the
+            page size underneath it.
+
+            So this page exists for the half of a dataset control that has never
+            been exercised anywhere:
+
+                - three pages of records, forward and back
+                - server-side sorting, including a column that cannot be sorted
+                - a hidden column and columns out of their array order
+                - loading, empty, error, and "no columns chosen"
+                - the platform's real paging misbehaviour, as switches
+
+            The last one is the point. The scaffolded control carries three
+            repairs for behaviour observed on a real model-driven form, and each
+            reads as superstition until you can turn the behaviour off and watch
+            the repair stop being needed.
+
+            It also logs every mutator the control called. Half of what a
+            dataset control does is ask the platform for things, and a rendered
+            table shows none of it.
+
+            How to use it:
+
+                npm run build
+                npm run harness
+
+            No bundler and no new dependencies: `npm run harness` is
+            `dev/serve.js`, which is `node:http` and nothing else.
+
+            **This is a stand-in, not a view.** No Dataverse, no server-side
+            filtering, no virtualization, no selection, no record opening. A
+            state you can produce here is worth handling; a state that works
+            here has still only been seen against a twelve-row fixture. See
+            SPEC.md.
+        -->
+
+        <link rel="stylesheet" href="../../LinkColumn/LinkColumn/css/LinkColumn.css" />
+        <style>
+            body {
+                margin: 0;
+                padding: 24px;
+                font-family: 'Segoe UI', system-ui, sans-serif;
+                font-size: 14px;
+                background: #faf9f8;
+                color: #323130;
+            }
+
+            h1 {
+                font-size: 18px;
+                margin: 0 0 4px;
+            }
+
+            .harness-note {
+                margin: 0 0 24px;
+                color: #605e5c;
+            }
+
+            .harness-controls {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+                gap: 12px 20px;
+                margin-bottom: 24px;
+                padding: 16px;
+                background: #fff;
+                border: 1px solid #edebe9;
+                border-radius: 4px;
+            }
+
+            .harness-controls label {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .harness-controls label.is-switch {
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .harness-controls span {
+                color: #605e5c;
+                font-size: 12px;
+            }
+
+            .harness-controls textarea {
+                font-family: 'Cascadia Mono', Consolas, monospace;
+                font-size: 12px;
+                resize: vertical;
+            }
+
+            /* An unparseable inputs bag, said in the one place you are looking. */
+            .harness-controls textarea.is-bad {
+                border-color: #a4262c;
+                outline: 1px solid #a4262c;
+            }
+
+            .harness-group {
+                grid-column: 1 / -1;
+                margin: 4px 0 0;
+                padding-top: 12px;
+                border-top: 1px solid #edebe9;
+                font-weight: 600;
+                color: #605e5c;
+            }
+
+            h2 {
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: #605e5c;
+                margin: 32px 0 8px;
+            }
+
+            .harness-surface {
+                background: #fff;
+                border: 1px solid #edebe9;
+                border-radius: 4px;
+                padding: 16px;
+            }
+
+            .harness-surface.is-dark {
+                background: #1b1a19;
+                border-color: #3b3a39;
+            }
+
+            .harness-log {
+                margin: 0;
+                padding: 12px 16px;
+                max-height: 220px;
+                overflow: auto;
+                background: #fff;
+                border: 1px solid #edebe9;
+                border-radius: 4px;
+                font-family: Consolas, 'Courier New', monospace;
+                font-size: 13px;
+                white-space: pre-wrap;
+            }
+
+            .harness-badge {
+                display: inline-block;
+                padding: 1px 8px;
+                border-radius: 10px;
+                background: #f3f2f1;
+                color: #605e5c;
+                font-size: 12px;
+            }
+
+            .harness-badge.is-bad {
+                background: #fde7e9;
+                color: #a4262c;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Link Column — dev harness</h1>
+        <p class="harness-note">
+            A stand-in for a bound view, with three pages in it. Run
+            <code>npm run build</code> first; reload after every build.
+        </p>
+
+        <div class="harness-controls">
+            <label>
+                Host
+                <select id="harness-host">
+                    <option value="model-driven">Model-driven form</option>
+                    <option value="canvas">Canvas app</option>
+                </select>
+                <span>Canvas publishes no theme.</span>
+            </label>
+
+            <label>
+                Page size
+                <input type="number" id="harness-pagesize" value="5" min="1" max="250" />
+                <span>12 records in the fixture.</span>
+            </label>
+
+            <label>
+                Form factor
+                <select id="harness-formfactor">
+                    <option value="desktop">Desktop (1)</option>
+                    <option value="tablet">Tablet (2)</option>
+                    <option value="phone">Phone (3)</option>
+                    <option value="unknown">Unknown (0)</option>
+                </select>
+                <span>Web is <code>1</code>; <code>3</code> is a phone.</span>
+            </label>
+
+            <label>
+                Allocated width
+                <input type="number" id="harness-width" value="-1" />
+                <span><code>-1</code> until the control calls
+                <code>trackContainerResize</code>.</span>
+            </label>
+
+            <label>
+                State
+                <select id="harness-state">
+                    <option value="ready">Records</option>
+                    <option value="loading">Loading</option>
+                    <option value="empty">No records</option>
+                    <option value="nocolumns">No columns chosen</option>
+                    <option value="error">Error</option>
+                </select>
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-dark" />
+                Dark theme
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-visible" checked />
+                Visible
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-rtl" />
+                Right-to-left
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-disabled" />
+                Disabled (read-only form)
+            </label>
+
+            <p class="harness-group">
+                How the platform misbehaves — all three observed on a real form,
+                and all three on by default because that is what a real form
+                does.
+            </p>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-accumulate" checked />
+                loadNextPage(true) returns every page
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-stuck" checked />
+                hasPreviousPage never becomes true
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-uncounted" />
+                totalResultCount is -1
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-exactpage" checked />
+                loadExactPage exists
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-nosorting" />
+                dataset.sorting is undefined (npm start)
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-nofiltering" />
+                dataset.filtering is undefined
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-addcolumn" checked />
+                dataset.addColumn exists
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-fullscreen" checked />
+                mode.setFullScreen exists
+            </label>
+
+            <p class="harness-group">
+                What the host withholds. Each of these is absent on some real
+                host, and each is absent independently — which is the point:
+                a control that checks the bag once and then calls four methods
+                through it passes here and throws there.
+            </p>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-webapi" checked />
+                context.webAPI exists
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-webapifails" />
+                webAPI.deleteRecord rejects
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-navigation" checked />
+                context.navigation exists
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-openfile" checked />
+                navigation.openFile exists
+            </label>
+
+            <label>
+                Platform dialogs
+                <select id="harness-dialogs">
+                    <option value="confirmed">Confirm → confirmed</option>
+                    <option value="cancelled">Confirm → cancelled</option>
+                    <option value="rejected">Dialogs reject</option>
+                    <option value="absent">No dialogs (canvas)</option>
+                </select>
+                <span>A cancel <strong>resolves</strong>, with
+                <code>{ confirmed: false }</code>.</span>
+            </label>
+
+            <label>
+                Input properties
+                <textarea id="harness-inputs" rows="3" spellcheck="false">{}</textarea>
+                <span>JSON, merged into <code>parameters</code> as
+                <code>{ raw }</code>. Seed the manifest's own
+                <code>default-value</code>s here — the platform supplies them
+                and this rig does not.</span>
+            </label>
+        </div>
+
+        <h2>The control <span class="harness-badge" id="harness-passes"></span></h2>
+        <div class="harness-surface" id="harness-surface">
+            <div id="harness-root"></div>
+        </div>
+
+        <h2>What the control asked the platform to do</h2>
+        <pre class="harness-log" id="harness-calls"></pre>
+
+        <p class="harness-note" id="harness-status"></p>
+
+        <script src="fixture.js"></script>
+        <script src="host.js"></script>
+        <script src="harness.js"></script>
+        <script src="../../out/controls/LinkColumn/bundle.js"></script>
+        <script>
+            window.__harnessStart();
+        </script>
+    </body>
+</html>

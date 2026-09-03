@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <!--
+    The version here is what the Power Platform upgrades on, and the release
+    workflow refuses to publish a tag that disagrees with it. Bump this in the
+    same commit as the tag.
+  -->
+  <control namespace="PCFHub"
+           constructor="LinkField"
+           version="0.1.0"
+           display-name-key="LinkField_Name"
+           description-key="LinkField_Desc"
+           control-type="standard">
+
+    <!--
+      Leave this disabled unless the control calls a third-party service.
+
+      `enabled="true"` makes the control **premium**, and premium is a cost
+      somebody else pays: every end user of an app containing this component
+      then needs a Power Apps licence rather than an Office 365 one. Nothing
+      fails to build, nothing warns at install, and the person who finds out is
+      not the person who typed it — so this is worth confirming with whoever
+      owns the control rather than flipping to make a `fetch` work.
+
+      When it is genuinely enabled, list every domain. `<domain>` children are
+      declarative and can be listed under `enabled="false"` too, which is the
+      schema's own second example; it is the `enabled` attribute alone that
+      carries the licensing consequence.
+
+          <external-service-usage enabled="true">
+            <domain>tile.example.com</domain>
+          </external-service-usage>
+
+      `npm run check` fails on `enabled="true"` with no domain, and warns on
+      `enabled="true"` at all.
+    -->
+    <external-service-usage enabled="false" />
+
+    <!--
+      PCFHub generates the component's API reference from this file, at the tag
+      of each release.
+
+      It records `display-name-key` and `description-key` *verbatim* — it does
+      not read the .resx — so a reader sees the key itself unless something
+      changes it. Two ways to get readable text: keep the keys themselves
+      readable, or correct them once in the hub's admin panel, where editing a
+      property locks that field so later syncs leave it alone.
+
+      The platform still resolves these against the .resx for the maker's
+      properties pane, so the keys must exist there either way.
+    -->
+    <property name="value"
+              display-name-key="value_Name"
+              description-key="value_Desc"
+              of-type="SingleLine.Text"
+              usage="bound"
+              required="true" />
+
+    <property name="placeholder"
+              display-name-key="placeholder_Name"
+              description-key="placeholder_Desc"
+              of-type="SingleLine.Text"
+              usage="input"
+              required="false" />
+
+    <!--
+      The text to show instead of the address itself.
+
+      Left empty, the control shows the URL's host without `www.` — which is
+      short, honest and almost always what a form wants. A full URL in a field
+      is mostly query string, and truncating one produces something that looks
+      like a broken link.
+    -->
+    <property name="linkLabel"
+              display-name-key="linkLabel_Name"
+              description-key="linkLabel_Desc"
+              of-type="SingleLine.Text"
+              usage="input"
+              required="false" />
+
+    <resources>
+      <code path="index.ts" order="1" />
+      <css path="css/LinkField.css" order="1" />
+      <!--
+        Every language the control ships.
+
+        A .resx that exists on disk but is not listed here is not shipped, and
+        nothing warns — the file is simply never packed, and the control runs
+        in English for that locale while the repository looks translated.
+        `npm run check` catches both that and a key missing from a language.
+
+        Drop the ones you will not maintain. A stale translation is worse than
+        an honest fallback to English, and every key added to 1033 is a key
+        owed to each file listed here.
+
+        THE ORDER IS DELIBERATE AND 1033 GOES LAST. `pcf-start` picks the .resx
+        by manifest order rather than by locale: it reads whichever file is
+        listed *last* and ignores the LCID and the browser language entirely.
+        The platform itself ignores the order completely — a real app resolves
+        from the user's provisioned language — so `npm start` is the only thing
+        in the world that reads this order, and it is ordered for it. Listing
+        1033 first is the tidier-looking arrangement and it makes `npm start`
+        render the whole control in Japanese, which reads as a broken build.
+
+        The consequence to remember: ADD A NEW LANGUAGE ABOVE THIS LINE, not
+        below it. Appending a sixth file after 1033 silently moves the harness
+        to that language, and the symptom shows up in a `npm start` session
+        nobody connects to a manifest edit.
+      -->
+      <resx path="strings/LinkField.3082.resx" version="1.0.0" />
+      <resx path="strings/LinkField.1036.resx" version="1.0.0" />
+      <resx path="strings/LinkField.1031.resx" version="1.0.0" />
+      <resx path="strings/LinkField.1041.resx" version="1.0.0" />
+      <resx path="strings/LinkField.1033.resx" version="1.0.0" />
+    </resources>
+
+    <!--
+      Uncomment only the features actually used. Each one becomes a permission
+      prompt for the maker installing the control.
+
+    <feature-usage>
+      <uses-feature name="Utility" required="true" />
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+    -->
+  </control>
+</manifest>

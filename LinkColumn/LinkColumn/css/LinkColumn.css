@@ -1,0 +1,370 @@
+/*
+  Every rule is scoped under .LinkColumn.
+
+  A code component's CSS is loaded into the whole page, not into a shadow root,
+  so an unscoped `table { }` here restyles the host form.
+*/
+
+/*
+  The palette, as Fluent's design tokens with literal fallbacks.
+
+  `FluentProvider` is what emits the tokens as CSS custom properties on its own
+  wrapper, and there are two ways this control ends up inside one. The React
+  variant mounts its own, with the host's `tokenTheme`. The DOM variant cannot —
+  the provider is React — but a model-driven form already mounts one above every
+  code component on the page, so the tokens are there to be read either way.
+  Nothing has to be mounted in order to read them.
+
+  So the token wins wherever the host publishes it, and the control follows the
+  app's theme and brand colour with no code at all. The fallbacks are what it
+  looks like where nothing does — a canvas app, or PCFHub's demo harness.
+
+  They are Fluent's web light theme, read from `@fluentui/tokens` rather than
+  eyeballed. Two of them were wrong before this: `colorPaletteRedForeground1` is
+  `#bc2f32` and not `#b10e1c`, and `colorBrandForegroundLink` is `#115ea3` and
+  not the `#0f6cbd` of `colorCompoundBrandForeground1`. Neither was visible
+  until a host stopped publishing tokens, which is exactly when a fallback is
+  the only thing anybody sees.
+
+  Declared once here rather than written at each use site, because the dark set
+  below has to redefine them and a palette scattered through the file is a
+  palette that cannot be.
+*/
+.LinkColumn {
+    --LinkColumn-foreground: var(--colorNeutralForeground1, #242424);
+    --LinkColumn-foreground-secondary: var(--colorNeutralForeground3, #616161);
+    --LinkColumn-foreground-disabled: var(--colorNeutralForegroundDisabled, #bdbdbd);
+    --LinkColumn-foreground-danger: var(--colorPaletteRedForeground1, #bc2f32);
+    --LinkColumn-link: var(--colorBrandForegroundLink, #115ea3);
+    --LinkColumn-link-hover: var(--colorBrandForegroundLinkHover, #0f548c);
+    --LinkColumn-background: var(--colorNeutralBackground1, #ffffff);
+    --LinkColumn-background-hover: var(--colorNeutralBackground1Hover, #f5f5f5);
+    --LinkColumn-background-pressed: var(--colorNeutralBackground1Pressed, #e0e0e0);
+    --LinkColumn-row-hover: var(--colorSubtleBackgroundHover, #f5f5f5);
+    --LinkColumn-stroke: var(--colorNeutralStroke1, #d1d1d1);
+    --LinkColumn-stroke-hover: var(--colorNeutralStroke1Hover, #c7c7c7);
+    --LinkColumn-stroke-subtle: var(--colorNeutralStroke2, #e0e0e0);
+    --LinkColumn-stroke-disabled: var(--colorNeutralStrokeDisabled, #e0e0e0);
+    --LinkColumn-focus-inner: var(--colorStrokeFocus1, #ffffff);
+    --LinkColumn-focus-outer: var(--colorStrokeFocus2, #000000);
+    --LinkColumn-radius: var(--borderRadiusMedium, 4px);
+    --LinkColumn-duration: var(--durationFaster, 100ms);
+    --LinkColumn-curve: var(--curveEasyEase, cubic-bezier(0.33, 0, 0.67, 1));
+
+    font-family: var(--fontFamilyBase, "Segoe UI", system-ui, sans-serif);
+    font-size: var(--fontSizeBase300, 14px);
+    color: var(--LinkColumn-foreground);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacingVerticalS, 8px);
+    width: 100%;
+}
+
+/*
+  The dark fallbacks, applied from `fluentDesignLanguage.isDarkTheme` in
+  `index.ts` rather than from `prefers-color-scheme`. A model-driven app carries
+  its own theme and the operating system's setting says nothing about it, so the
+  media query would hand an OS-dark machine on a light app a dark table.
+
+  This block only ever bites in the DOM variant on a host that publishes no
+  tokens. The React variant is inside its own `FluentProvider`, so every `var()`
+  above already resolves and none of these fallbacks is reached — which is why
+  the React entry point does not set the class and does not need to.
+*/
+.LinkColumn--dark {
+    --LinkColumn-foreground: var(--colorNeutralForeground1, #ffffff);
+    --LinkColumn-foreground-secondary: var(--colorNeutralForeground3, #adadad);
+    --LinkColumn-foreground-disabled: var(--colorNeutralForegroundDisabled, #5c5c5c);
+    --LinkColumn-foreground-danger: var(--colorPaletteRedForeground1, #e37d80);
+    --LinkColumn-link: var(--colorBrandForegroundLink, #479ef5);
+    --LinkColumn-link-hover: var(--colorBrandForegroundLinkHover, #62abf5);
+    --LinkColumn-background: var(--colorNeutralBackground1, #292929);
+    --LinkColumn-background-hover: var(--colorNeutralBackground1Hover, #3d3d3d);
+    --LinkColumn-background-pressed: var(--colorNeutralBackground1Pressed, #1f1f1f);
+    --LinkColumn-row-hover: var(--colorSubtleBackgroundHover, #383838);
+    --LinkColumn-stroke: var(--colorNeutralStroke1, #666666);
+    --LinkColumn-stroke-hover: var(--colorNeutralStroke1Hover, #757575);
+    --LinkColumn-stroke-subtle: var(--colorNeutralStroke2, #525252);
+    --LinkColumn-stroke-disabled: var(--colorNeutralStrokeDisabled, #424242);
+    --LinkColumn-focus-inner: var(--colorStrokeFocus1, #000000);
+    --LinkColumn-focus-outer: var(--colorStrokeFocus2, #ffffff);
+}
+
+.LinkColumn-message {
+    margin: 0;
+    padding: var(--spacingVerticalL, 16px);
+    color: var(--LinkColumn-foreground-secondary);
+}
+
+.LinkColumn-error {
+    color: var(--LinkColumn-foreground-danger);
+}
+
+/* Wide views scroll inside the control rather than widening the form. */
+.LinkColumn-scroll {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/*
+  Dim rather than blank while a page loads. Replacing the rows with a spinner
+  makes every sort and page turn flash empty.
+
+  This is the one place `opacity` is the right tool — it is transient and it is
+  saying "stale", not "unavailable". A *disabled* control dimmed this way would
+  be dragging its text below contrast permanently, which is why the pager's
+  disabled state below recolours instead.
+*/
+.LinkColumn-scroll.is-loading {
+    opacity: 0.6;
+}
+
+.LinkColumn-table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* The title names the table for a screen reader without taking up space. */
+.LinkColumn-caption {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.LinkColumn-table th,
+.LinkColumn-table td {
+    text-align: start;
+    padding: var(--spacingVerticalS, 8px) var(--spacingHorizontalM, 12px);
+    border-bottom: 1px solid var(--LinkColumn-stroke-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Fluent's DataGrid gives rows 44px and the header the same, which is what
+   makes a grid read as a grid rather than as a table with padding. */
+.LinkColumn-table th,
+.LinkColumn-table td {
+    height: 44px;
+    box-sizing: border-box;
+}
+
+.LinkColumn-table th {
+    font-weight: var(--fontWeightSemibold, 600);
+    border-bottom: 1px solid var(--LinkColumn-stroke);
+}
+
+.LinkColumn-table tbody tr {
+    transition: background-color var(--LinkColumn-duration) var(--LinkColumn-curve);
+}
+
+.LinkColumn-table tbody tr:hover {
+    background-color: var(--LinkColumn-row-hover);
+}
+
+/*
+  The sort control and the open-record control are real buttons, so they are
+  keyboard-reachable. These rules strip the browser chrome without removing the
+  semantics.
+*/
+.LinkColumn-sort,
+.LinkColumn-open {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--LinkColumn-duration) var(--LinkColumn-curve);
+}
+
+.LinkColumn-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacingHorizontalXS, 4px);
+    font-weight: inherit;
+}
+
+.LinkColumn-open {
+    color: var(--LinkColumn-link);
+    text-align: start;
+}
+
+.LinkColumn-open:hover {
+    color: var(--LinkColumn-link-hover);
+    text-decoration: underline;
+}
+
+/*
+  Fluent's focus indicator: a dark ring with a light one immediately inside it,
+  so the shape survives against a light row and a dark one. A single outline
+  disappears into whichever background happens to match it — which on a table
+  means it disappears on hover, since that is a different colour again.
+
+  `:focus-visible` rather than `:focus`, so clicking a sort header does not
+  leave a ring behind on a control the user is no longer navigating by keyboard.
+*/
+.LinkColumn-sort:focus-visible,
+.LinkColumn-open:focus-visible,
+.LinkColumn-pager button:focus-visible {
+    outline: 2px solid var(--LinkColumn-focus-outer);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 4px var(--LinkColumn-focus-inner);
+    border-radius: var(--LinkColumn-radius);
+}
+
+.LinkColumn-arrow {
+    font-size: 0.7em;
+    color: var(--LinkColumn-foreground-secondary);
+}
+
+.LinkColumn-pager {
+    display: flex;
+    align-items: center;
+    gap: var(--spacingHorizontalM, 12px);
+}
+
+/*
+  Fluent's secondary Button: 32px tall, semibold, a neutral fill that darkens on
+  hover and again on press. The height matters more than it looks — a pager
+  button that is 26px tall next to a form full of 32px controls is the same
+  mismatch as a field that is the wrong height, just further down the page.
+*/
+/*
+  The pager chevrons.
+
+  Inline `<svg>`, inheriting the button’s `color`. An icon behind `<img src>`
+  — a resource, a data URL, PNG or SVG alike — renders in an isolated document
+  that cannot read this stylesheet, so it resolves `currentColor` to black and a
+  dark form gets a black glyph on a dark background. A control in this house
+  shipped exactly that.
+
+  `flex: none` so a chevron never squashes on a narrow form — the label is what
+  should give way instead.
+*/
+.LinkColumn-chevron {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+
+/*
+  Mirrored in right-to-left. A chevron is directional, and reordering the flex
+  children does not turn the glyph around: `<` stays `<` and ends up pointing at
+  the label rather than away from it.
+
+  Keyed off *any* right-to-left ancestor rather than this control’s own `dir`.
+  A DOM control sets `dir` on its container, a React one on the `FluentProvider`
+  above it, and a host form in an right-to-left language sets it higher again —
+  an ancestor selector is the one that is right in all three cases.
+*/
+[dir="rtl"] .LinkColumn-chevron {
+    transform: scaleX(-1);
+}
+
+.LinkColumn-pager button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacingHorizontalXS, 4px);
+    box-sizing: border-box;
+    min-height: 32px;
+    padding: var(--spacingVerticalXS, 4px) var(--spacingHorizontalM, 12px);
+    font: inherit;
+    font-weight: var(--fontWeightSemibold, 600);
+    color: var(--LinkColumn-foreground);
+    background-color: var(--LinkColumn-background);
+    border: 1px solid var(--LinkColumn-stroke);
+    border-radius: var(--LinkColumn-radius);
+    cursor: pointer;
+    outline-style: none;
+    transition:
+        background-color var(--LinkColumn-duration) var(--LinkColumn-curve),
+        border-color var(--LinkColumn-duration) var(--LinkColumn-curve),
+        color var(--LinkColumn-duration) var(--LinkColumn-curve);
+}
+
+.LinkColumn-pager button:hover {
+    background-color: var(--LinkColumn-background-hover);
+    border-color: var(--LinkColumn-stroke-hover);
+}
+
+.LinkColumn-pager button:active {
+    background-color: var(--LinkColumn-background-pressed);
+}
+
+/*
+  Recoloured rather than dimmed. A pager sits at the end of a page and is
+  disabled for as long as the user is on the first or last one, which is not a
+  transient state — `opacity` there would take the label below contrast and
+  leave it there.
+*/
+.LinkColumn-pager button:disabled,
+.LinkColumn-pager button:disabled:hover {
+    color: var(--LinkColumn-foreground-disabled);
+    background-color: var(--LinkColumn-background);
+    border-color: var(--LinkColumn-stroke-disabled);
+    cursor: default;
+}
+
+.LinkColumn-pagerStatus {
+    color: var(--LinkColumn-foreground-secondary);
+}
+
+/*
+  Forced colours collapse every tint to one of a handful of system keywords, so
+  anything carrying meaning by colour has to carry it by shape as well. The row
+  hover and the link colour both vanish there; the borders and the focus ring
+  are what is left to carry structure, so they are restated against system
+  keywords rather than left to be overridden into invisibility.
+*/
+@media (forced-colors: active) {
+    .LinkColumn-table th,
+    .LinkColumn-table td {
+        border-bottom-color: ButtonBorder;
+    }
+
+    .LinkColumn-pager button {
+        border-color: ButtonBorder;
+    }
+
+    .LinkColumn-pager button:disabled {
+        color: GrayText;
+        border-color: GrayText;
+    }
+
+    /* An open-record button is a link in everything but markup, and forced
+       colours is where that has to be said out loud — the brand colour is gone
+       and the underline is the only thing left distinguishing it from a cell. */
+    .LinkColumn-open {
+        color: LinkText;
+        text-decoration: underline;
+    }
+
+    .LinkColumn-sort:focus-visible,
+    .LinkColumn-open:focus-visible,
+    .LinkColumn-pager button:focus-visible {
+        outline-color: Highlight;
+    }
+}
+
+/*
+  Shortened, not removed. These transitions are decoration — a row hover, a
+  button press — and none of them carries state on its own, so cutting them to
+  nothing loses nothing.
+*/
+@media screen and (prefers-reduced-motion: reduce) {
+    .LinkColumn-table tbody tr,
+    .LinkColumn-sort,
+    .LinkColumn-open,
+    .LinkColumn-pager button {
+        transition-duration: 0.01ms;
+    }
+}

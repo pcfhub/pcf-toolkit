@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    French (fr-FR, LCID 1036).
+
+    Keep the key set identical to LinkField.1033.resx. A key missing here does
+    not fall back to English — it renders as the key name, and only for users in
+    this language, so nobody who reads English ever sees it. `npm run check`
+    compares the two.
+
+    Link Toolkit and Render a URL column as a real link, on a form and in a view. are filled by `npm run setup` with the English
+    title and tagline you gave it, because the template cannot know them. They
+    are the two values in this file worth translating by hand.
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="value_Name" xml:space="preserve">
+    <value>Valeur</value>
+  </data>
+  <data name="value_Desc" xml:space="preserve">
+    <value>La colonne que ce contrôle lit et écrit.</value>
+  </data>
+  <data name="placeholder_Name" xml:space="preserve">
+    <value>Espace réservé</value>
+  </data>
+  <data name="placeholder_Desc" xml:space="preserve">
+    <value>Texte indicatif affiché lorsque le champ est vide.</value>
+  </data>
+  <data name="LinkField_NoAccess" xml:space="preserve">
+    <value>Vous n'avez pas accès à cette valeur.</value>
+  </data>
+  <data name="LinkField_Name" xml:space="preserve">
+    <value>Champ de lien</value>
+  </data>
+  <data name="LinkField_Desc" xml:space="preserve">
+    <value>Affiche une colonne d'URL sous forme de lien cliquable.</value>
+  </data>
+  <data name="linkLabel_Name" xml:space="preserve">
+    <value>Texte du lien</value>
+  </data>
+  <data name="linkLabel_Desc" xml:space="preserve">
+    <value>Texte affiché à la place de l'adresse. Vide, le nom du site est affiché.</value>
+  </data>
+  <data name="LinkField_Open" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
+  <data name="LinkField_OpenNamed" xml:space="preserve">
+    <value>Ouvrir {0}</value>
+  </data>
+  <data name="LinkField_Invalid" xml:space="preserve">
+    <value>Ce n'est pas une adresse web. Les liens doivent commencer par http:// ou https://.</value>
+  </data>
+  <data name="LinkField_Offline" xml:space="preserve">
+    <value>Vous semblez hors connexion. L'ouverture du lien peut échouer.</value>
+  </data>
+  <data name="LinkField_NotPersisted" xml:space="preserve">
+    <value>Cette modification ne sera pas conservée si vous changez d'onglet.</value>
+  </data>
+</root>

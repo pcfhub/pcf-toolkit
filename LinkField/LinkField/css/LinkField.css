@@ -1,0 +1,310 @@
+/*
+ * Every rule is scoped under the control's own class.
+ *
+ * A code component shares a document with the host app and with every other
+ * control on the form, so a bare `input { … }` here restyles the page it was
+ * dropped onto. The platform does not sandbox this for you.
+ */
+
+/*
+ * The palette, as Fluent's design tokens with literal fallbacks.
+ *
+ * A standard control cannot mount a `FluentProvider` — the provider is React
+ * and this is not — and the usual conclusion from that is that Fluent's styling
+ * is out of reach, so the control invents its own colours and ends up looking
+ * pasted onto the form. The conclusion is wrong. `FluentProvider` is what
+ * *emits* the theme as CSS custom properties, and a model-driven form already
+ * mounts one above every code component on the page. Nothing has to be mounted
+ * in order to read them.
+ *
+ * So the token wins where the host publishes it — the control then follows the
+ * app's theme *and its brand colour* with no code — and the literal carries the
+ * hosts that publish nothing, which includes canvas apps and PCFHub's demo
+ * harness. The fallbacks are Fluent's web light theme, taken from
+ * `@fluentui/tokens` rather than eyeballed: a value one step off on the neutral
+ * ramp is invisible alone and obvious beside the real thing.
+ */
+.LinkField {
+    --LinkField-background: var(--colorNeutralBackground3, #f5f5f5);
+    --LinkField-background-hover: var(--colorNeutralBackground3Hover, #ebebeb);
+    --LinkField-background-disabled: var(--colorTransparentBackground, transparent);
+    --LinkField-stroke: var(--colorTransparentStroke, transparent);
+    --LinkField-stroke-disabled: var(--colorNeutralStrokeDisabled, #e0e0e0);
+    --LinkField-stroke-focus: var(--colorCompoundBrandStroke, #0f6cbd);
+    --LinkField-stroke-focus-pressed: var(--colorCompoundBrandStrokePressed, #0f548c);
+    --LinkField-stroke-invalid: var(--colorPaletteRedBorder2, #d13438);
+    --LinkField-foreground: var(--colorNeutralForeground1, #242424);
+    --LinkField-foreground-secondary: var(--colorNeutralForeground2, #424242);
+    --LinkField-foreground-placeholder: var(--colorNeutralForeground4, #707070);
+    --LinkField-foreground-disabled: var(--colorNeutralForegroundDisabled, #bdbdbd);
+    --LinkField-foreground-danger: var(--colorPaletteRedForeground1, #bc2f32);
+    --LinkField-radius: var(--borderRadiusMedium, 4px);
+    --LinkField-font-family: var(
+        --fontFamilyBase,
+        "Segoe UI",
+        "Segoe UI Web (West European)",
+        -apple-system,
+        BlinkMacSystemFont,
+        Roboto,
+        "Helvetica Neue",
+        sans-serif
+    );
+    --LinkField-font-size: var(--fontSizeBase300, 14px);
+    --LinkField-line-height: var(--lineHeightBase300, 20px);
+    --LinkField-font-size-caption: var(--fontSizeBase200, 12px);
+    --LinkField-line-height-caption: var(--lineHeightBase200, 16px);
+    --LinkField-duration-fast: var(--durationUltraFast, 50ms);
+    --LinkField-duration-normal: var(--durationNormal, 200ms);
+    --LinkField-duration-faster: var(--durationFaster, 100ms);
+    --LinkField-curve-accelerate: var(--curveAccelerateMid, cubic-bezier(1, 0, 1, 1));
+    --LinkField-curve-decelerate: var(--curveDecelerateMid, cubic-bezier(0, 0, 0, 1));
+    --LinkField-curve-ease: var(--curveEasyEase, cubic-bezier(0.33, 0, 0.67, 1));
+
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--LinkField-font-family);
+    color: var(--LinkField-foreground);
+}
+
+/*
+ * The dark fallbacks, chosen from `fluentDesignLanguage.isDarkTheme` in
+ * `index.ts` rather than from `prefers-color-scheme`.
+ *
+ * The media query is the obvious hook and it answers the wrong question: a
+ * model-driven app carries its own theme and the operating system's setting
+ * says nothing about it, so an OS-dark machine on a light app would get #141414
+ * behind the form's white.
+ *
+ * Only the fallbacks change here. A host that emits the tokens is already
+ * handing over its own dark values through the `var()`, and this block never
+ * takes effect there.
+ */
+.LinkField--dark {
+    --LinkField-background: var(--colorNeutralBackground3, #141414);
+    --LinkField-background-hover: var(--colorNeutralBackground3Hover, #292929);
+    --LinkField-stroke-disabled: var(--colorNeutralStrokeDisabled, #424242);
+    --LinkField-stroke-focus: var(--colorCompoundBrandStroke, #479ef5);
+    --LinkField-stroke-focus-pressed: var(--colorCompoundBrandStrokePressed, #2886de);
+    --LinkField-stroke-invalid: var(--colorPaletteRedBorder2, #e37d80);
+    --LinkField-foreground: var(--colorNeutralForeground1, #ffffff);
+    --LinkField-foreground-secondary: var(--colorNeutralForeground2, #d6d6d6);
+    --LinkField-foreground-placeholder: var(--colorNeutralForeground4, #999999);
+    --LinkField-foreground-disabled: var(--colorNeutralForegroundDisabled, #5c5c5c);
+    --LinkField-foreground-danger: var(--colorPaletteRedForeground1, #e37d80);
+}
+
+/*
+ * The field surface: Fluent's `filled-darker` Input, which is the shape a
+ * model-driven form draws. The fill is `colorNeutralBackground3`, all four
+ * borders are transparent, and the box is 32px tall — `medium` in Fluent's
+ * three field heights, and the one a form uses.
+ *
+ * The borders are transparent rather than absent on purpose. They hold the
+ * height against the box model, and they are what the invalid and disabled
+ * states colour in; a field with no border to reveal has to grow one, which
+ * moves every field below it.
+ */
+.LinkField .LinkField-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: var(--spacingHorizontalXXS, 2px);
+    box-sizing: border-box;
+    min-height: 32px;
+    border: 1px solid var(--LinkField-stroke);
+    border-radius: var(--LinkField-radius);
+    background-color: var(--LinkField-background);
+    transition: background-color var(--LinkField-duration-faster) var(--LinkField-curve-ease);
+}
+
+.LinkField .LinkField-field:hover {
+    background-color: var(--LinkField-background-hover);
+}
+
+/*
+ * Required, not belt-and-braces. `hidden` works by way of a UA rule
+ * `[hidden] { display: none }`, which any author `display` declaration beats on
+ * specificity — so the `display: flex` above would leave `field.hidden = true`
+ * rendering an empty grey bar where the field-level-security message should be
+ * the only thing on the form.
+ */
+.LinkField .LinkField-field[hidden] {
+    display: none;
+}
+
+/*
+ * The animated focus underline — the most recognisable thing Fluent does, and
+ * the obvious implementation of it is wrong.
+ *
+ * A `border-bottom` that appears on focus is 2px of height the box did not have
+ * a moment ago, so every field below it nudges down as the user tabs through
+ * the form. Scaling an absolutely-positioned pseudo-element is composited and
+ * moves nothing.
+ *
+ * `clip-path` is what keeps a 4px box reading as a 2px line: the height has to
+ * clear the corner radius or the line stops short of the rounded ends, and the
+ * clip trims the rest. `left`/`right`/`bottom` at -1px put it over the border
+ * rather than inside it.
+ *
+ * The asymmetric duration is Fluent's: 50ms out, 200ms in, so arriving in a
+ * field is what the eye catches and leaving one is not.
+ *
+ * A curve in `transition-delay` is invalid and computes to `0s`, so those two
+ * declarations do nothing. They are here because Fluent's own source has them
+ * (`useInputStyles.styles.raw.js`) — worth knowing they are inert rather than
+ * "fixing" them into a timing function, which would animate differently from
+ * every other field on the page. Deleting them is equally correct.
+ */
+.LinkField .LinkField-field::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    left: -1px;
+    box-sizing: border-box;
+    height: max(2px, var(--LinkField-radius));
+    border-bottom: 2px solid var(--LinkField-stroke-focus);
+    border-bottom-right-radius: var(--LinkField-radius);
+    border-bottom-left-radius: var(--LinkField-radius);
+    clip-path: inset(calc(100% - 2px) 0 0 0);
+    transform: scaleX(0);
+    transition-property: transform;
+    transition-duration: var(--LinkField-duration-fast);
+    transition-delay: var(--LinkField-curve-accelerate);
+}
+
+/* `:focus-within` rather than `:focus`, so anything added inside the surface
+   later — a button, a picker toggle — lights the same field the input does. */
+.LinkField .LinkField-field:focus-within::after {
+    transform: scaleX(1);
+    transition-duration: var(--LinkField-duration-normal);
+    transition-delay: var(--LinkField-curve-decelerate);
+}
+
+.LinkField .LinkField-field:focus-within:active::after {
+    border-bottom-color: var(--LinkField-stroke-focus-pressed);
+}
+
+/* The underline is the focus indicator for this box; suppressing the UA outline
+   here stops a second one being drawn around it. */
+.LinkField .LinkField-field:focus-within {
+    outline: 2px solid transparent;
+}
+
+.LinkField .LinkField-input {
+    /* `min-width: 0` because a flex item's default `min-width: auto` refuses to
+       shrink below its intrinsic width — which pushes anything trailing off a
+       narrow form instead of narrowing the field, and canvas apps put controls
+       in genuinely narrow places. */
+    flex: 1 1 auto;
+    min-width: 0;
+    align-self: stretch;
+    box-sizing: border-box;
+    padding: 0 var(--spacingHorizontalM, 12px);
+    border-style: none;
+    outline-style: none;
+    /* The surface owns the fill; the input is a hole in it. Give the input a
+       fill of its own and the surface's hover shows as a lighter rectangle
+       inside the field. */
+    background-color: transparent;
+    color: var(--LinkField-foreground);
+    font-family: inherit;
+    font-size: var(--LinkField-font-size);
+    line-height: var(--LinkField-line-height);
+    font-weight: var(--fontWeightRegular, 400);
+    text-overflow: ellipsis;
+}
+
+/* `opacity: 1` because Firefox dims placeholders by default, which drags the
+   colour below 4.5:1 against the fill. */
+.LinkField .LinkField-input::placeholder {
+    color: var(--LinkField-foreground-placeholder);
+    opacity: 1;
+}
+
+/*
+ * Disabled is a different surface, not a dimmer one. `opacity` over the enabled
+ * styling is the reflex and it is wrong twice: it drags the *text* below
+ * contrast along with the chrome, and it looks nothing like Fluent, which
+ * removes the fill and reveals the border.
+ */
+.LinkField--disabled .LinkField-field,
+.LinkField--disabled .LinkField-field:hover {
+    background-color: var(--LinkField-background-disabled);
+    border-color: var(--LinkField-stroke-disabled);
+}
+
+.LinkField--disabled .LinkField-input {
+    color: var(--LinkField-foreground-disabled);
+    cursor: not-allowed;
+}
+
+.LinkField--disabled .LinkField-input::placeholder {
+    color: var(--LinkField-foreground-disabled);
+}
+
+/* `mode.isVisible` is false. Canvas relies on this; model-driven hides the
+   section itself, so this is the cheap half of supporting both. */
+.LinkField--hidden {
+    display: none;
+}
+
+/* The bound property reported `error`. Fluent colours all four borders and
+   drops the colour the moment the field is focused, on the reasoning that
+   somebody already fixing the error does not need telling again. */
+.LinkField--invalid .LinkField-field:not(:focus-within),
+.LinkField--invalid .LinkField-field:hover:not(:focus-within) {
+    border-color: var(--LinkField-stroke-invalid);
+}
+
+.LinkField .LinkField-message {
+    margin: var(--spacingVerticalXXS, 2px) 0 0;
+    font-family: inherit;
+    font-size: var(--LinkField-font-size-caption);
+    line-height: var(--LinkField-line-height-caption);
+    color: var(--LinkField-foreground-danger);
+}
+
+.LinkField .LinkField-message[hidden] {
+    display: none;
+}
+
+/*
+ * Forced colours collapse every tint to one of a handful of system keywords, so
+ * anything carrying meaning by colour has to carry it by shape too. The
+ * transparent borders become visible ones and the underline picks up the system
+ * highlight instead of the brand.
+ */
+@media (forced-colors: active) {
+    .LinkField .LinkField-field {
+        border-color: ButtonBorder;
+    }
+
+    .LinkField .LinkField-field::after {
+        border-bottom-color: Highlight;
+    }
+
+    .LinkField--disabled .LinkField-field {
+        border-color: GrayText;
+    }
+
+    .LinkField--disabled .LinkField-input {
+        color: GrayText;
+    }
+}
+
+/*
+ * Shortened, not removed. The animation is decoration; the focus it indicates
+ * is not, so the line still has to appear — it just stops travelling to get
+ * there. Fluent ships this pair on the Input itself.
+ */
+@media screen and (prefers-reduced-motion: reduce) {
+    .LinkField .LinkField-field,
+    .LinkField .LinkField-field::after,
+    .LinkField .LinkField-field:focus-within::after {
+        transition-duration: 0.01ms;
+        transition-delay: 0.01ms;
+    }
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PowerAppsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\PowerApps</PowerAppsTargetsPath>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+  <Import Project="$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Pcf.props" Condition="Exists('$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Pcf.props')" />
+
+  <!--
+    One project per control, and the project file sits beside the manifest.
+
+    A .pcfproj may hold exactly ONE control: the msbuild targets glob
+    **/ControlManifest.Input.xml from this directory, and `pac pcf push`
+    refuses outright when that glob returns more than one — "Pcf projects
+    should only contain a single source manifest file". Putting the project
+    file in the control folder makes that glob return one by construction.
+
+    Several controls still ship together: Solution/Solution.cdsproj carries a
+    ProjectReference to each of them, which is the one-to-many relationship
+    between a solution project and its component projects.
+  -->
+  <PropertyGroup>
+    <Name>LinkColumn</Name>
+    <ProjectGuid>12a2a0d5-51ec-47a1-9949-a60ae36d9ad3</ProjectGuid>
+    <!--
+      Up one level, so every control in this repository writes into the same
+      out/controls/<Constructor>/ the dev rigs, pcfhub.json and both shared
+      workflows already read from. A per-project out/ would scatter them.
+    -->
+    <OutputPath>$(MSBuildThisFileDirectory)..\out\controls</OutputPath>
+    <!-- production, not debug: the bundle that ships is the one CI packs. -->
+    <PcfBuildMode>production</PcfBuildMode>
+    <!--
+      The dependencies live in the repository root, installed once. Without
+      this, msbuild runs `npm install` in this directory and creates a second
+      node_modules per control.
+    -->
+    <PcfEnableAutoNpmInstall>false</PcfEnableAutoNpmInstall>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFramework>net462</TargetFramework>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PowerApps.MSBuild.Pcf" Version="1.*" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ExcludeDirectories Include="$(MSBuildThisFileDirectory)\bin\**" />
+    <ExcludeDirectories Include="$(MSBuildThisFileDirectory)\obj\**" />
+    <ExcludeDirectories Include="$(MSBuildThisFileDirectory)\generated\**" />
+    <ExcludeDirectories Include="$(OutputPath)\**" />
+    <ExcludeDirectories Include="$(MSBuildThisFileDirectory)\*.pcfproj" />
+    <ExcludeDirectories Include="$(MSBuildThisFileDirectory)\*.pcfproj.user" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)\**" Exclude="@(ExcludeDirectories)" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+  <Import Project="$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Pcf.targets" Condition="Exists('$(PowerAppsTargetsPath)\Microsoft.PowerApps.VisualStudio.Pcf.targets')" />
+
+</Project>

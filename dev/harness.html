@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Link Toolkit — dev harness</title>
+
+        <!--
+            A local stand-in for a model-driven form, for the states `npm start`
+            cannot put a field control into.
+
+            Use `npm start` for the happy path — it is the better tool for
+            "does my control render and can I type in it". This page is for the
+            branches that only a real form reaches, and that therefore only a
+            customer normally finds:
+
+                - field-level security (read-only, and no access at all)
+                - the platform's own validation error
+                - a host that publishes no theme, versus one that does
+                - a host that publishes no column metadata (canvas)
+                - right-to-left
+
+            It also shows what `getOutputs()` actually returns after every
+            interaction, and counts `notifyOutputChanged` calls — a control that
+            notifies on every render rather than on every change shows up here
+            as a counter that climbs on its own.
+
+            How to use it:
+
+                npm run build
+                npm run harness
+
+            No bundler and no new dependencies: `npm run harness` is
+            `dev/serve.js`, which is `node:http` and nothing else. It loads the bundle
+            `npm run build` already produced, and the same `dev/host.js` that
+            `npm run smoke` uses.
+
+            It opens over `file://`, which is why everything it needs is a
+            `<script src>` rather than a `fetch` — `fetch` is blocked there.
+
+            **This is a stand-in, not a form.** There is no Dataverse behind it,
+            no save, no business rules, and no other control on the page. A
+            state you can produce here is a state worth handling; a state that
+            works here has still only been seen in one browser with one set of
+            fixtures. See SPEC.md for what a real form still has to confirm.
+        -->
+
+        <link rel="stylesheet" href="../LinkField/LinkField/css/LinkField.css" />
+        <style>
+            body {
+                margin: 0;
+                padding: 24px;
+                font-family: 'Segoe UI', system-ui, sans-serif;
+                font-size: 14px;
+                background: #faf9f8;
+                color: #323130;
+            }
+
+            h1 {
+                font-size: 18px;
+                margin: 0 0 4px;
+            }
+
+            .harness-note {
+                margin: 0 0 24px;
+                color: #605e5c;
+            }
+
+            .harness-controls {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+                gap: 12px 20px;
+                margin-bottom: 24px;
+                padding: 16px;
+                background: #fff;
+                border: 1px solid #edebe9;
+                border-radius: 4px;
+            }
+
+            .harness-controls label {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .harness-controls label.is-switch {
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .harness-controls span {
+                color: #605e5c;
+                font-size: 12px;
+            }
+
+            h2 {
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: #605e5c;
+                margin: 32px 0 8px;
+            }
+
+            /*
+                The form's own chrome around the control: a label above a
+                fixed-width column, which is the shape a model-driven form puts
+                a code component into. Getting the width roughly right is what
+                makes an overflowing control visible here rather than on a form.
+            */
+            .harness-form {
+                background: #fff;
+                border: 1px solid #edebe9;
+                border-radius: 4px;
+                padding: 20px;
+                max-width: 420px;
+            }
+
+            .harness-form.is-dark {
+                background: #1b1a19;
+                border-color: #3b3a39;
+            }
+
+            .harness-label {
+                display: block;
+                margin-bottom: 4px;
+                font-weight: 600;
+                color: #323130;
+            }
+
+            .harness-form.is-dark .harness-label {
+                color: #f3f2f1;
+            }
+
+            .harness-out {
+                margin: 0;
+                padding: 12px 16px;
+                background: #fff;
+                border: 1px solid #edebe9;
+                border-radius: 4px;
+                font-family: Consolas, 'Courier New', monospace;
+                font-size: 13px;
+                white-space: pre-wrap;
+            }
+
+            .harness-badge {
+                display: inline-block;
+                padding: 1px 8px;
+                border-radius: 10px;
+                background: #f3f2f1;
+                color: #605e5c;
+                font-size: 12px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Link Toolkit — dev harness</h1>
+        <p class="harness-note">
+            A stand-in for a model-driven form. Run <code>npm run build</code>
+            first; reload after every build.
+        </p>
+
+        <div class="harness-controls">
+            <label>
+                Host
+                <select id="harness-host">
+                    <option value="model-driven">Model-driven form</option>
+                    <option value="canvas">Canvas app</option>
+                </select>
+                <span>Canvas publishes no theme and no column metadata.</span>
+            </label>
+
+            <label>
+                Column value
+                <input type="text" id="harness-value" />
+                <span>Empty here is <code>''</code>; use Clear for <code>null</code>.</span>
+            </label>
+
+            <label>
+                Field-level security
+                <select id="harness-security">
+                    <option value="none">None (the usual case)</option>
+                    <option value="read-only">Read, no write</option>
+                    <option value="no-access">No access</option>
+                </select>
+                <span>No access arrives as <code>raw === null</code>.</span>
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-error" />
+                Validation error
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-disabled" />
+                Form read-only
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-visible" checked />
+                Visible
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-dark" />
+                Dark theme
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-rtl" />
+                Right-to-left
+            </label>
+
+            <label>
+                Form factor
+                <select id="harness-formfactor">
+                    <option value="desktop">Desktop (1)</option>
+                    <option value="tablet">Tablet (2)</option>
+                    <option value="phone">Phone (3)</option>
+                    <option value="unknown">Unknown (0)</option>
+                </select>
+                <span>Web is <code>1</code>; <code>3</code> is a phone.</span>
+            </label>
+
+            <label>
+                Allocated width
+                <input type="number" id="harness-width" value="-1" />
+                <span><code>-1</code> until the control calls
+                <code>trackContainerResize</code>.</span>
+            </label>
+
+            <label>
+                Location
+                <select id="harness-position">
+                    <option value="no-bridge">No geolocation on this host</option>
+                    <option value="denied">Permission denied</option>
+                    <option value="unavailable">Unavailable (rejects with null)</option>
+                    <option value="seattle">A fix, 20&thinsp;m accuracy</option>
+                    <option value="vague">A fix, 1200&thinsp;m accuracy</option>
+                </select>
+                <span>Three refusals, and only one is an <code>Error</code>.</span>
+            </label>
+
+            <label>
+                Camera
+                <select id="harness-camera">
+                    <option value="none">No camera on this host</option>
+                    <option value="photo">Returns one photo</option>
+                </select>
+                <span><code>captureImage</code> resolves with <em>one</em> file,
+                not an array.</span>
+            </label>
+
+            <label>
+                Record identity
+                <select id="harness-identity">
+                    <option value="none">None (canvas, and the default)</option>
+                    <option value="contextinfo">mode.contextInfo</option>
+                </select>
+                <span>Undocumented and untyped; absent is the honest default.</span>
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-webapi" checked />
+                context.webAPI exists
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-utils" checked />
+                context.utils exists
+            </label>
+
+            <label class="is-switch">
+                <input type="checkbox" id="harness-offline" />
+                Offline
+            </label>
+
+            <label class="is-switch">
+                <button type="button" id="harness-clear">Clear the column</button>
+            </label>
+
+            <label class="is-switch">
+                <button type="button" id="harness-rerender">updateView again</button>
+            </label>
+        </div>
+
+        <h2>The control</h2>
+        <div class="harness-form" id="harness-form">
+            <span class="harness-label" id="harness-formlabel"></span>
+            <div id="harness-root"></div>
+        </div>
+
+        <h2>getOutputs() <span class="harness-badge" id="harness-notified"></span></h2>
+        <pre class="harness-out" id="harness-outputs"></pre>
+
+        <p class="harness-note" id="harness-status"></p>
+
+        <!--
+            host.js before the bundle: it installs the `registerControl` the
+            bundle calls the moment it loads, and there is nowhere to register
+            otherwise.
+        -->
+        <script src="host.js"></script>
+        <script src="harness.js"></script>
+        <script src="../out/controls/LinkField/bundle.js"></script>
+        <script>
+            window.__harnessStart();
+        </script>
+    </body>
+</html>

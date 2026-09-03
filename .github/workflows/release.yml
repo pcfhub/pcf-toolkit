@@ -1,0 +1,44 @@
+name: Release
+
+# A pushed tag is the whole trigger. PCFHub's contract is that tagging a
+# component repository publishes a documented version on the hub with no manual
+# steps, and this workflow is the half of that contract living here.
+#
+# The steps themselves live in release-reusable.yml, shared by every component
+# repository, so a fix to the build reaches all of them instead of the one that
+# happened to be edited. What stays here is only what differs between repos:
+# which directory holds the control, and which holds the solution.
+#
+# Pinned to @v1 rather than @main — a release build is the last place to want an
+# unannounced change.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to build and release'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # Skipped in the template itself.
+    #
+    # `release-reusable.yml` is versioned by tagging *this* repository, and this
+    # workflow triggers on `v*` — so cutting `v1` would kick off a Windows
+    # solution pack against a checkout whose placeholders have not been replaced,
+    # which fails slowly and means nothing. An adopted repository does not carry
+    # this condition's subject, so it never matches and the job runs normally.
+    #
+    # Delete this line after adopting if you like; leaving it costs nothing.
+    if: github.repository != 'pcfhub/_template'
+    uses: pcfhub/_template/.github/workflows/release-reusable.yml@v1
+    with:
+      control-dir: LinkField/LinkField
+      solution-dir: Solution
+      tag: ${{ github.event.inputs.tag }}

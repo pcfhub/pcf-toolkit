@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Display names and descriptions for everything declared in
+    ControlManifest.Input.xml. PCFHub reads the manifest, so these strings are
+    what appear in the component's API reference on the hub as well as in the
+    maker's properties pane.
+
+    Copy this file to add a language — LinkColumn.3082.resx for Spanish, and so
+    on — then list it under <resources> in the manifest.
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+
+  <data name="LinkColumn_Name" xml:space="preserve">
+    <value>Link Column</value>
+  </data>
+  <data name="LinkColumn_Desc" xml:space="preserve">
+    <value>Render a URL column as a link in every row of a view.</value>
+  </data>
+
+  <data name="Records_DataSet_Name" xml:space="preserve">
+    <value>Records</value>
+  </data>
+
+  <data name="PageSize_Name" xml:space="preserve">
+    <value>Page size</value>
+  </data>
+  <data name="PageSize_Desc" xml:space="preserve">
+    <value>How many rows to request per page. The platform may clamp large values.</value>
+  </data>
+
+  <data name="OpenedRecordId_Name" xml:space="preserve">
+    <value>Opened record ID</value>
+  </data>
+  <data name="OpenedRecordId_Desc" xml:space="preserve">
+    <value>The ID of the row most recently opened.</value>
+  </data>
+
+  <data name="LinkColumn_Loading" xml:space="preserve">
+    <value>Loading records…</value>
+  </data>
+  <data name="LinkColumn_Empty" xml:space="preserve">
+    <value>No records.</value>
+  </data>
+  <data name="LinkColumn_NoColumns" xml:space="preserve">
+    <value>No columns are selected for this table.</value>
+  </data>
+  <data name="LinkColumn_Error" xml:space="preserve">
+    <value>This view could not be loaded.</value>
+  </data>
+  <data name="LinkColumn_Previous" xml:space="preserve">
+    <value>Previous page</value>
+  </data>
+  <data name="LinkColumn_Next" xml:space="preserve">
+    <value>Next page</value>
+  </data>
+  <data name="LinkColumn_PageStatus" xml:space="preserve">
+    <value>Page {0}</value>
+  </data>
+  <data name="LinkColumn_RangeStatus" xml:space="preserve">
+    <value>{0}–{1} of {2}</value>
+  </data>
+  <data name="LinkColumn_SortBy" xml:space="preserve">
+    <value>Sort by {0}</value>
+  </data>
+  <data name="LinkColumn_OpenRecord" xml:space="preserve">
+    <value>Open {0}</value>
+  </data>
+  <data name="LinkColumn_OpenLink" xml:space="preserve">
+    <value>Open {0}</value>
+  </data>
+</root>

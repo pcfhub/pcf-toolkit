@@ -1,0 +1,13 @@
+{
+  "name": "pcf-toolkit-linkfield",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The LinkField control project. Built from the repository root; see ../package.json.",
+  "scripts": {
+    "build": "pcf-scripts build",
+    "clean": "pcf-scripts clean",
+    "rebuild": "pcf-scripts rebuild",
+    "start": "pcf-scripts start",
+    "refreshTypes": "pcf-scripts refreshTypes"
+  }
+}
