@@ -194,8 +194,33 @@ export class LinkColumn implements ComponentFramework.StandardControl<IInputs, I
             return;
         }
 
+        const previous = this.appliedPageSize;
+
         this.appliedPageSize = wanted;
         dataset.paging.setPageSize(wanted);
+
+        /*
+         * **Repaginating makes "page 4" mean something else**, so the reader
+         * goes back to the first page — the same move `sortBy` makes, and for
+         * the same reason. Any change to the shape of the result set — a sort,
+         * a filter, a page size — resets the page.
+         *
+         * **Only when it changed, though.** `previous` is 0 until a size has
+         * been applied, and at mount the platform is already on page one, so
+         * resetting there is a round trip bought for nothing: `reset()` is a
+         * fetch in its own right and the `refresh()` below is a second one.
+         *
+         * Left out entirely at first, and close to unfalsifiable while the size
+         * comes only from a manifest property: a property changes once, at
+         * configuration time, almost always while the reader is on page one.
+         * `pcf-data-table` 0.2.0 made it reachable with a rows-per-page picker,
+         * and asked for page 3 of a result set that had just been recut.
+         */
+        if (previous > 0) {
+            this.page = 1;
+            dataset.paging.reset();
+        }
+
         dataset.refresh();
     }
 
