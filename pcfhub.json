@@ -4,11 +4,11 @@
   "name": "Link Toolkit",
   "tagline": "Render a URL column as a real link, on a form and in a view.",
   "category": "utilities",
+  "hosts": ["canvas", "model-driven"],
   "tags": [
     "link",
     "url",
     "navigation",
-    "dataset",
     "field"
   ],
   "control": {
