@@ -14,7 +14,9 @@
     "refreshTypes": "npm run refreshTypes --prefix LinkField && npm run refreshTypes --prefix LinkColumn",
     "smoke": "node dev/smoke.js && node dev/LinkColumn/smoke.js",
     "harness": "node dev/serve.js",
-    "lint": "eslint LinkField LinkColumn shared --ext .ts,.tsx"
+    "lint": "eslint LinkField LinkColumn shared --ext .ts,.tsx",
+    "bump": "node scripts/version.mjs",
+    "release": "node scripts/release.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
