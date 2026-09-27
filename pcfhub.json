@@ -33,12 +33,53 @@
   "demo": {
     "fidelity": "limited",
     "limitations": [
-      "Opening a link is a platform call. The demo records that LinkField asked to open a URL but nothing opens — navigation.openUrl is the host's, and the hub's harness is not a Power Apps host.",
-      "Keeping an unsaved edit across a form tab switch needs mode.setControlState, which the harness does not persist. The control reports that it could not save rather than pretending it did.",
-      "This repository ships two controls — LinkField (field) and LinkColumn (dataset) — in one solution. PCFHub publishes one component per repository, so the demo and the API reference below cover LinkField only. Both are installed by the download.",
-      "The demo view is a fixture of twelve rows on a single page. A real view pages, sorts and filters on the server."
+      "Opening a link is a platform call, navigation.openUrl, and the demo cannot open anything from inside its sandbox. So Open hands the address to the event log under the demo, which offers it to open in a new tab; on a form the platform opens it.",
+      "Keeping an unsaved edit across a form tab switch depends on the platform destroying the control and re-creating it with what mode.setControlState saved. The demo never re-creates the control, so that round trip is not shown.",
+      "This repository ships two controls — LinkField (field) and LinkColumn (dataset) — in one solution. PCFHub publishes one component per repository, so the demo and the API reference below cover LinkField only. Both are installed by the download."
     ],
-    "presets": [],
+    "presets": [
+      {
+        "slug": "link",
+        "name": "A web address",
+        "description": "An address with Open beside it. The demo cannot open links itself, so Open hands it to the event log under the demo. Turn on Read-only to see it as a link named by its host.",
+        "props": {
+          "value": "https://learn.microsoft.com/power-apps/developer/component-framework/overview",
+          "placeholder": "https://",
+          "linkLabel": ""
+        },
+        "isDefault": true
+      },
+      {
+        "slug": "labelled",
+        "name": "A labelled link",
+        "description": "The same address with a label. While editable, the label names the Open button for a screen reader; turn on Read-only and the link reads as the label instead of the host.",
+        "props": {
+          "value": "https://learn.microsoft.com/power-apps/developer/component-framework/overview",
+          "placeholder": "https://",
+          "linkLabel": "Component framework overview"
+        }
+      },
+      {
+        "slug": "no-scheme",
+        "name": "Missing https://",
+        "description": "An address typed without its scheme is not a link: the control says so under the field and offers nothing to open. Only http and https addresses are followed.",
+        "props": {
+          "value": "www.contoso.com",
+          "placeholder": "https://",
+          "linkLabel": ""
+        }
+      },
+      {
+        "slug": "empty",
+        "name": "Empty",
+        "description": "An empty field shows its placeholder, and there is nothing to open until an address is typed.",
+        "props": {
+          "value": "",
+          "placeholder": "https://www.contoso.com",
+          "linkLabel": ""
+        }
+      }
+    ],
     "bundle": "out/controls/LinkField/bundle.js",
     "styles": [
       "out/controls/LinkField/css/LinkField.css"

@@ -135,15 +135,20 @@ Fluent's design tokens through `var()`.
 engineered away: the two APIs this control is *about* are both platform calls the
 hub's harness is not in a position to honour.
 
-- **Opening a link does nothing there.** `navigation.openUrl` belongs to the
-  host. The demo shows the control deciding to open a URL — which address, and
-  whether it was willing to at all — and nothing opens.
+- **Opening a link is handed to the page.** `navigation.openUrl` belongs to the
+  host, and the demo cannot open anything from inside its sandbox. The control
+  still decides which address to open and whether it is willing to at all; the
+  demo's event log then offers that address to open in a new tab.
 - **The unsaved-edit rescue cannot be shown.** It needs a real teardown and
-  remount with `mode.setControlState` in between. The harness does not persist,
-  so the control takes the honest branch and says the edit will not be kept.
+  remount with `mode.setControlState` in between, and the demo never re-creates
+  the control. Its `setControlState` accepts the draft, so the control makes no
+  promise either way; it simply never gets the chance to restore it.
 
 What the demo *does* show is the half worth seeing: which values become links and
-which stay text. Type a `javascript:` URL into it and watch the control refuse.
+which stay text. Four presets cover a web address, a labelled link, an address
+missing its `https://`, and an empty field; the demo's Read-only toggle shows the
+read-only link, and its phone preview the compact layout. Type a `javascript:`
+URL into it and watch the control refuse.
 
 **The demo and the API reference cover `LinkField` only.** PCFHub publishes one
 component per repository — one `pcfhub.json`, one slug, one `control` block, one
