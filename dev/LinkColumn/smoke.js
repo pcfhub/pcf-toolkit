@@ -225,7 +225,7 @@ function bind(options) {
         notifications: () => notifications,
         outputs: () => (instance.getOutputs ? instance.getOutputs() : {}),
         find: (selector) => container.querySelector(selector),
-        findAll: (selector) => container.querySelectorAll(selector),
+        findAll: (selector) => Array.from(container.querySelectorAll(selector)),
         /** Let the platform catch up after something the control asked for. */
         settle: () => {
             driven = host.drive(instance, handle, 10);
@@ -788,7 +788,7 @@ check('and re-rendering does not add another one', time.pending() === afterFirst
  */
 const linked = bind({});
 
-const anchors = () => linked.container.querySelectorAll('a.LinkColumn-link');
+const anchors = () => Array.from(linked.container.querySelectorAll('a.LinkColumn-link'));
 const hrefs = () => anchors().map((a) => a.getAttribute('href'));
 
 check(

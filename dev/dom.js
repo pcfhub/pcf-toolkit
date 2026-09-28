@@ -16,6 +16,12 @@
  * silently absorbs calls is how a smoke suite goes green for a control that
  * does nothing.
  *
+ * **And never thicker.** A shim that does *more* than the browser certifies
+ * code the browser refuses: `querySelectorAll` and `children` return what a
+ * browser returns — a `NodeList` and an `HTMLCollection`, with no `map`,
+ * `filter` or `find` — so `el.children.forEach` fails here as it does on a
+ * form. A suite that wants an array writes `Array.from(...)` itself.
+ *
  * What it does not have, it does not pretend to have: nothing here can tell you
  * that a control *looks* right, that a stylesheet applies, or that focus and
  * keyboard order work. Those need `npm start`, `dev/harness.html`, or a real
@@ -73,6 +79,66 @@ ClassList.prototype.toString = function () {
     return this._names.join(' ');
 };
 
+/*
+ * The two collection shapes a browser hands back, as static snapshots:
+ * indexable, `length`, `item()`, iterable — and nothing an Array has that
+ * they do not. `NodeList` has `forEach` and the three iterators;
+ * `HTMLCollection` has neither `forEach` nor iterators beyond the default,
+ * and adds `namedItem`. (A browser's `children` is live; a snapshot is the
+ * safe direction, since a control relying on liveness is relying on
+ * something this cannot show.)
+ */
+function collection(proto, items) {
+    var list = Object.create(proto);
+
+    for (var i = 0; i < items.length; i += 1) {
+        list[i] = items[i];
+    }
+
+    Object.defineProperty(list, 'length', { value: items.length });
+    return list;
+}
+
+function values() {
+    return Array.prototype.values.call(this);
+}
+
+var NodeListPrototype = {
+    item: function (index) {
+        return this[index] || null;
+    },
+    forEach: function (callback, thisArg) {
+        for (var i = 0; i < this.length; i += 1) {
+            callback.call(thisArg, this[i], i, this);
+        }
+    },
+    entries: function () {
+        return Array.prototype.entries.call(this);
+    },
+    keys: function () {
+        return Array.prototype.keys.call(this);
+    },
+    values: values,
+};
+NodeListPrototype[Symbol.iterator] = values;
+NodeListPrototype[Symbol.toStringTag] = 'NodeList';
+
+var HTMLCollectionPrototype = {
+    item: function (index) {
+        return this[index] || null;
+    },
+    namedItem: function (name) {
+        for (var i = 0; i < this.length; i += 1) {
+            if (this[i].getAttribute('id') === name || this[i].getAttribute('name') === name) {
+                return this[i];
+            }
+        }
+        return null;
+    },
+};
+HTMLCollectionPrototype[Symbol.iterator] = values;
+HTMLCollectionPrototype[Symbol.toStringTag] = 'HTMLCollection';
+
 function Element(tagName) {
     this.tagName = String(tagName).toUpperCase();
     this.childNodes = [];
@@ -115,7 +181,12 @@ function Element(tagName) {
     // `undefined`, which several controls compare against.
     this.hidden = false;
     this.disabled = false;
-    this.value = '';
+    // `value` is an accessor — see *The text entry cursor* below — and these
+    // are the state behind it, set directly so construction moves no cursor.
+    this._value = '';
+    this._selectionStart = 0;
+    this._selectionEnd = 0;
+    this._selectionDirection = 'none';
     this.type = '';
     this.title = '';
     this.placeholder = '';
@@ -224,7 +295,7 @@ Object.defineProperty(Element.prototype, 'dataset', {
 
 Object.defineProperty(Element.prototype, 'children', {
     get: function () {
-        return this.childNodes.slice();
+        return collection(HTMLCollectionPrototype, this.childNodes);
     },
 });
 
@@ -304,8 +375,8 @@ Element.prototype.removeAttribute = function (name) {
  * `href` resolves to an absolute URL on read — and a stub that guessed at the
  * general rule would be wrong in a way nothing here could reveal. These are the
  * ones a code component sets as a property and a test reads as an attribute.
- * `value` is NOT in the list: it is already special-cased below, because its
- * real behaviour is the exception rather than the rule.
+ * `value` is NOT in the list: it has a cursor behind it, modelled below,
+ * because its real behaviour is the exception rather than the rule.
  */
 ['src', 'href', 'alt', 'title', 'type'].forEach(function (name) {
     Object.defineProperty(Element.prototype, name, {
@@ -318,6 +389,125 @@ Element.prototype.removeAttribute = function (name) {
         configurable: true,
     });
 });
+
+/*
+ * The text entry cursor.
+ *
+ * `input.value = x` is the one assignment every field control makes, and in a
+ * browser it has a side effect the caret rule exists for: **when the value
+ * changes, the cursor moves to the end.** When it does not change — the same
+ * string assigned again — the cursor stays where it was (HTML's value setter:
+ * "if the new value is different from oldValue … move the text entry cursor
+ * position to the end"). Both halves are modelled, because each certifies
+ * something: without the first, an assertion about the caret passes whatever
+ * the control does; without the second, an identical echo would look like a
+ * caret jump and the suite would demand a guard that fixes nothing.
+ *
+ * So what actually loses a user's place is a value that *differs* arriving
+ * while they type — the platform echoing an earlier keystroke late (see
+ * `manifest.md`, *The platform echoes writes back out of order*), or a control
+ * that reformats as you type. The `user` helpers below type the way a person
+ * does, so a suite can put a stale echo in the middle and read the cursor.
+ *
+ * Only a text-entry input and a `<textarea>` have a cursor. On `type="email"`,
+ * `number`, `checkbox` and the rest `selectionStart` is `null` and
+ * `setSelectionRange` throws `InvalidStateError` — measured behaviour a control
+ * reformatting an email box meets on its first keystroke, so it throws here
+ * too. Other elements keep the plain `value` this file always gave them.
+ */
+var TEXT_ENTRY_TYPES = ['', 'text', 'search', 'url', 'tel', 'password'];
+
+function hasCursor(element) {
+    return element.tagName === 'TEXTAREA'
+        || (element.tagName === 'INPUT' && TEXT_ENTRY_TYPES.indexOf(String(element.type).toLowerCase()) !== -1);
+}
+
+/*
+ * The value sanitisation a browser applies on every write: a single-line input
+ * cannot hold a line break, so pasting two lines into one yields one line.
+ */
+function sanitise(element, value) {
+    var text = value === null || value === undefined ? '' : String(value);
+
+    return element.tagName === 'INPUT' ? text.replace(/[\r\n]/g, '') : text;
+}
+
+Object.defineProperty(Element.prototype, 'value', {
+    get: function () {
+        return this._value;
+    },
+    set: function (value) {
+        var next = sanitise(this, value);
+
+        if (next === this._value) {
+            return;
+        }
+
+        this._value = next;
+        this._selectionStart = next.length;
+        this._selectionEnd = next.length;
+        this._selectionDirection = 'none';
+    },
+    configurable: true,
+});
+
+function cursorProperty(field) {
+    return {
+        get: function () {
+            if (!hasCursor(this)) {
+                return this.tagName === 'INPUT' ? null : undefined;
+            }
+
+            return this['_' + field];
+        },
+        set: function (value) {
+            if (field === 'selectionStart') {
+                this.setSelectionRange(value, Math.max(value, this._selectionEnd), this._selectionDirection);
+            } else if (field === 'selectionEnd') {
+                this.setSelectionRange(this._selectionStart, value, this._selectionDirection);
+            } else {
+                this.setSelectionRange(this._selectionStart, this._selectionEnd, value);
+            }
+        },
+        configurable: true,
+    };
+}
+
+Object.defineProperty(Element.prototype, 'selectionStart', cursorProperty('selectionStart'));
+Object.defineProperty(Element.prototype, 'selectionEnd', cursorProperty('selectionEnd'));
+Object.defineProperty(Element.prototype, 'selectionDirection', cursorProperty('selectionDirection'));
+
+function invalidState(what) {
+    var error = new Error(
+        "Failed to execute '" + what + "' on 'HTMLInputElement': The input element's type ('"
+        + this.type + "') does not support selection.",
+    );
+
+    error.name = 'InvalidStateError';
+
+    return error;
+}
+
+/*
+ * Clamped the way a browser clamps: both ends to the length, and a start past
+ * the end pulled back to it rather than swapped.
+ */
+Element.prototype.setSelectionRange = function (start, end, direction) {
+    if (!hasCursor(this)) {
+        if (this.tagName === 'INPUT') {
+            throw invalidState.call(this, 'setSelectionRange');
+        }
+
+        throw new Error('dev/dom.js: setSelectionRange exists only on an input or a textarea.');
+    }
+
+    var length = this._value.length;
+    var to = Math.min(Math.max(0, Number(end) || 0), length);
+
+    this._selectionEnd = to;
+    this._selectionStart = Math.min(Math.max(0, Number(start) || 0), to);
+    this._selectionDirection = direction === 'forward' || direction === 'backward' ? direction : 'none';
+};
 
 Element.prototype.addEventListener = function (type, handler) {
     (this.listeners[type] = this.listeners[type] || []).push(handler);
@@ -354,8 +544,38 @@ Element.prototype.click = function () {
     this.dispatchEvent({ type: 'click', target: this, preventDefault: function () {} });
 };
 
+/*
+ * `focus` and `blur` as events, not only as `activeElement`.
+ *
+ * A control that shows a guide while focused, or commits on leaving the field,
+ * listens for these — and a `focus()` that only moved `activeElement` let such
+ * a control pass a suite that never ran its handlers. Moving focus blurs what
+ * had it first, as a browser does; focusing what already has focus fires
+ * nothing. Neither bubbles, which is also true in a browser.
+ */
 Element.prototype.focus = function () {
+    var previous = module.exports.document.activeElement;
+
+    if (previous === this) {
+        return;
+    }
+
     module.exports.document.activeElement = this;
+
+    if (previous && previous.dispatchEvent) {
+        previous.dispatchEvent({ type: 'blur', target: previous, relatedTarget: this, preventDefault: function () {} });
+    }
+
+    this.dispatchEvent({ type: 'focus', target: this, relatedTarget: previous || null, preventDefault: function () {} });
+};
+
+Element.prototype.blur = function () {
+    if (module.exports.document.activeElement !== this) {
+        return;
+    }
+
+    module.exports.document.activeElement = null;
+    this.dispatchEvent({ type: 'blur', target: this, relatedTarget: null, preventDefault: function () {} });
 };
 
 /*
@@ -373,6 +593,10 @@ Element.prototype.focus = function () {
  */
 Element.prototype.select = function () {
     module.exports.document.selection = this.value === undefined ? this.textContent : this.value;
+
+    if (hasCursor(this)) {
+        this.setSelectionRange(0, this._value.length);
+    }
 };
 
 /*
@@ -423,28 +647,31 @@ function matches(element, selector) {
     });
 }
 
-Element.prototype.querySelectorAll = function (selector) {
-    var found = [];
+function collect(element, selector, found) {
+    element.childNodes.forEach(function (child) {
+        if (matches(child, selector)) {
+            found.push(child);
+        }
 
+        collect(child, selector, found);
+    });
+
+    return found;
+}
+
+Element.prototype.querySelectorAll = function (selector) {
     // Checked before walking rather than per element, so an unsupported
     // selector throws on an empty tree too — otherwise it would return null on
     // a container that happens to have nothing in it, which reads as "no match"
     // and is the wrong answer for a selector this cannot evaluate at all.
     assertSupported(selector);
 
-    this.childNodes.forEach(function (child) {
-        if (matches(child, selector)) {
-            found.push(child);
-        }
-
-        found = found.concat(child.querySelectorAll(selector));
-    });
-
-    return found;
+    return collection(NodeListPrototype, collect(this, selector, []));
 };
 
 Element.prototype.querySelector = function (selector) {
-    return this.querySelectorAll(selector)[0] || null;
+    assertSupported(selector);
+    return collect(this, selector, [])[0] || null;
 };
 
 function createElement(tagName) {
@@ -595,6 +822,266 @@ FileReader.prototype.abort = function () {
     }
 };
 
+/*
+ * A person at the keyboard: `dom.user.type(input, 'abc')`.
+ *
+ * Each helper edits at the cursor and fires what a browser fires for that
+ * edit, in its order — `beforeinput` (cancelable, so `preventDefault()` stops
+ * the edit), the edit, then `input` — with a real `inputType` and `data`. A
+ * control that reformats as the user types reads exactly those, so a suite
+ * that set `input.value` and dispatched a bare `input` event was testing a
+ * sequence no browser produces.
+ *
+ * The shapes are Chromium's, which is what a model-driven form runs in:
+ *
+ * - `type(el, text)` — one `insertText` per character, each at the cursor,
+ *   replacing any selection. `maxLength` truncates what is typed, not what is
+ *   assigned — a browser limits the user, never the control.
+ * - `paste(el, text)` — a cancelable `paste` event with `clipboardData`, then
+ *   one `insertFromPaste`. Line breaks are stripped by the input itself.
+ * - `backspace(el)` / `del(el)` — `deleteContentBackward` / `Forward`: the
+ *   selection if there is one, otherwise one character. At the edge there is
+ *   nothing to delete and nothing fires.
+ * - `compose(el, steps, commit)` — an IME, and the Android keyboard, which
+ *   composes every word: `compositionstart`, then per step `beforeinput`
+ *   (`insertCompositionText`, **not** cancelable), `compositionupdate` and
+ *   `input` with `isComposing: true`, then `compositionend`. Chromium fires the
+ *   last `input` *before* `compositionend`, so a control that reformats on
+ *   `input` rewrites the value under a composition still open — the reason to
+ *   leave composition alone until it ends.
+ * - `autofill(el, text)` — the browser filling a saved phone number or
+ *   postcode: the whole value replaced, cursor at the end, an `input` with **no
+ *   `inputType` and no `beforeinput` before it**, then `change`. A control that
+ *   only intercepts `beforeinput` never sees it.
+ *
+ * Each focuses the element first, as clicking into it would. A disabled or
+ * read-only input takes no typing and fires nothing; each helper returns
+ * whether the edit happened.
+ *
+ * Not modelled: `keydown`/`keyup` (dispatch them yourself), undo, drag and
+ * drop, and a browser's own spell-check replacement. Autofill's shape is
+ * Chromium's as documented, not measured on a form — a control relying on it
+ * says so in `SPEC.md`.
+ */
+function inputEvent(type, target, init) {
+    return {
+        type: type,
+        target: target,
+        inputType: init.inputType,
+        data: init.data === undefined ? null : init.data,
+        isComposing: Boolean(init.isComposing),
+        cancelable: Boolean(init.cancelable),
+        defaultPrevented: false,
+        preventDefault: function () {
+            if (this.cancelable) {
+                this.defaultPrevented = true;
+            }
+        },
+    };
+}
+
+function editable(element) {
+    if (!hasCursor(element)) {
+        throw new Error('dev/dom.js: user.* types only into a text-entry input or a textarea, got ' + element.tagName
+            + (element.tagName === 'INPUT' ? ' type="' + element.type + '"' : ''));
+    }
+
+    if (element.disabled || element.readOnly === true) {
+        return false;
+    }
+
+    element.focus();
+
+    return true;
+}
+
+/*
+ * One edit: replace [start, end) with `text`, announced as `inputType`.
+ * Returns false when `beforeinput` was prevented.
+ */
+function edit(element, inputType, text, start, end) {
+    var before = inputEvent('beforeinput', element, { inputType: inputType, data: text, cancelable: true });
+
+    element.dispatchEvent(before);
+
+    if (before.defaultPrevented) {
+        return false;
+    }
+
+    var insert = text === null ? '' : sanitise(element, text);
+
+    element._value = element._value.slice(0, start) + insert + element._value.slice(end);
+    element._selectionStart = start + insert.length;
+    element._selectionEnd = start + insert.length;
+    element._selectionDirection = 'none';
+
+    element.dispatchEvent(inputEvent('input', element, { inputType: inputType, data: text }));
+
+    return true;
+}
+
+function room(element, replacing) {
+    var limit = typeof element.maxLength === 'number' && element.maxLength >= 0 ? element.maxLength : Infinity;
+
+    return limit - (element._value.length - replacing);
+}
+
+var user = {
+    type: function (element, text) {
+        if (!editable(element)) {
+            return false;
+        }
+
+        var any = false;
+
+        Array.from(String(text)).forEach(function (character) {
+            var start = element._selectionStart;
+            var end = element._selectionEnd;
+
+            if (room(element, end - start) < character.length) {
+                return;
+            }
+
+            any = edit(element, 'insertText', character, start, end) || any;
+        });
+
+        return any;
+    },
+
+    paste: function (element, text) {
+        if (!editable(element)) {
+            return false;
+        }
+
+        var paste = {
+            type: 'paste',
+            target: element,
+            cancelable: true,
+            defaultPrevented: false,
+            clipboardData: {
+                getData: function (format) {
+                    return format === 'text/plain' || format === 'text' || format === 'Text' ? String(text) : '';
+                },
+            },
+            preventDefault: function () {
+                this.defaultPrevented = true;
+            },
+        };
+
+        element.dispatchEvent(paste);
+
+        if (paste.defaultPrevented) {
+            return false;
+        }
+
+        var start = element._selectionStart;
+        var end = element._selectionEnd;
+        var fits = sanitise(element, text).slice(0, Math.max(0, room(element, end - start)));
+
+        return edit(element, 'insertFromPaste', fits, start, end);
+    },
+
+    backspace: function (element) {
+        if (!editable(element)) {
+            return false;
+        }
+
+        var start = element._selectionStart;
+        var end = element._selectionEnd;
+
+        if (start === end) {
+            if (start === 0) {
+                return false;
+            }
+
+            start -= 1;
+        }
+
+        return edit(element, 'deleteContentBackward', null, start, end);
+    },
+
+    del: function (element) {
+        if (!editable(element)) {
+            return false;
+        }
+
+        var start = element._selectionStart;
+        var end = element._selectionEnd;
+
+        if (start === end) {
+            if (end === element._value.length) {
+                return false;
+            }
+
+            end += 1;
+        }
+
+        return edit(element, 'deleteContentForward', null, start, end);
+    },
+
+    compose: function (element, steps, commit) {
+        if (!editable(element)) {
+            return false;
+        }
+
+        var list = (steps || []).slice();
+        var last = list.length > 0 ? list[list.length - 1] : '';
+        var final = commit === undefined ? last : commit;
+
+        if (final !== last) {
+            list.push(final);
+        }
+
+        var from = element._selectionStart;
+        var to = element._selectionEnd;
+
+        element.dispatchEvent({ type: 'compositionstart', target: element, data: '', preventDefault: function () {} });
+
+        list.forEach(function (step) {
+            var text = sanitise(element, step);
+
+            element.dispatchEvent(inputEvent('beforeinput', element, {
+                inputType: 'insertCompositionText',
+                data: step,
+                isComposing: true,
+                cancelable: false,
+            }));
+            element.dispatchEvent({ type: 'compositionupdate', target: element, data: step, preventDefault: function () {} });
+
+            element._value = element._value.slice(0, from) + text + element._value.slice(to);
+            to = from + text.length;
+            element._selectionStart = to;
+            element._selectionEnd = to;
+
+            element.dispatchEvent(inputEvent('input', element, {
+                inputType: 'insertCompositionText',
+                data: step,
+                isComposing: true,
+            }));
+        });
+
+        element.dispatchEvent({ type: 'compositionend', target: element, data: final, preventDefault: function () {} });
+
+        return true;
+    },
+
+    autofill: function (element, text) {
+        if (!editable(element)) {
+            return false;
+        }
+
+        element._value = sanitise(element, text);
+        element._selectionStart = element._value.length;
+        element._selectionEnd = element._value.length;
+        element._selectionDirection = 'none';
+
+        element.dispatchEvent({ type: 'input', target: element, preventDefault: function () {} });
+        element.dispatchEvent({ type: 'change', target: element, preventDefault: function () {} });
+
+        return true;
+    },
+};
+
 /**
  * Install the shim as this process's globals.
  *
@@ -640,4 +1127,5 @@ module.exports = {
     document: document,
     FileReader: FileReader,
     install: install,
+    user: user,
 };
