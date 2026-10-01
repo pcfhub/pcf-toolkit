@@ -3,6 +3,7 @@
   "slug": "pcf-toolkit",
   "name": "Link Toolkit",
   "tagline": "Render a URL column as a real link, on a form and in a view.",
+  "summary": "Installs two controls that render a web address held in a text column as a real link: **LinkField** for a single column on a form, and **LinkColumn** for every row of a view or subgrid.\n\n- Links open through the platform, so a click never navigates the form away from an unsaved edit\n- Only `http` and `https` addresses are followable\n- An unsaved edit survives a form tab switch",
   "category": "utilities",
   "hosts": ["canvas", "model-driven"],
   "tags": [
