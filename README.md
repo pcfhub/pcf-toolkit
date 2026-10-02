@@ -139,10 +139,12 @@ hub's harness is not in a position to honour.
   host, and the demo cannot open anything from inside its sandbox. The control
   still decides which address to open and whether it is willing to at all; the
   demo's event log then offers that address to open in a new tab.
-- **The unsaved-edit rescue cannot be shown.** It needs a real teardown and
-  remount with `mode.setControlState` in between, and the demo never re-creates
-  the control. Its `setControlState` accepts the draft, so the control makes no
-  promise either way; it simply never gets the chance to restore it.
+- **The unsaved-edit rescue is shown by the toolbar's Remount, not by a form.**
+  It needs a teardown and a remount with `mode.setControlState` in between, and
+  until 2026-10-02 the demo never re-created the control. Remount now destroys
+  it and hands `init` the saved draft, and the event log shows what was handed
+  over. That a form's own tab switch does the same is still *Not verified* in
+  `SPEC.md`.
 
 What the demo *does* show is the half worth seeing: which values become links and
 which stay text. Four presets cover a web address, a labelled link, an address

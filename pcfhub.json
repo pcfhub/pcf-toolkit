@@ -35,7 +35,7 @@
     "fidelity": "limited",
     "limitations": [
       "Opening a link is a platform call, navigation.openUrl, and the demo cannot open anything from inside its sandbox. So Open hands the address to the event log under the demo, which offers it to open in a new tab; on a form the platform opens it.",
-      "Keeping an unsaved edit across a form tab switch depends on the platform destroying the control and re-creating it with what mode.setControlState saved. The demo never re-creates the control, so that round trip is not shown.",
+      "Keeping an unsaved edit across a form tab switch depends on the platform destroying the control and re-creating it with what mode.setControlState saved. Remount in the demo's toolbar does that: type into the field without leaving it, press Remount, and the draft is still there, with the event log showing the state init() was handed. Whether a real form's tab switch makes the same round trip has not been measured.",
       "This repository ships two controls — LinkField (field) and LinkColumn (dataset) — in one solution. PCFHub publishes one component per repository, so the demo and the API reference below cover LinkField only. Both are installed by the download."
     ],
     "presets": [
