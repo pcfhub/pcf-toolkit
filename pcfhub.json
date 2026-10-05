@@ -12,6 +12,8 @@
     "navigation",
     "field"
   ],
+  "supportLevel": "reference",
+  "builtWith": "ai",
   "control": {
     "namespace": "PCFHub",
     "constructor": "LinkField",
