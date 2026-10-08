@@ -674,6 +674,38 @@ Element.prototype.querySelector = function (selector) {
     return collect(this, selector, [])[0] || null;
 };
 
+Element.prototype.matches = function (selector) {
+    assertSupported(selector);
+
+    return matches(this, selector);
+};
+
+/**
+ * Walk up from this element — itself included — to the first match.
+ *
+ * This is how a control with one delegated listener on a container turns an
+ * event target into the item that was clicked, so a suite that cannot call it
+ * cannot drive a click at all. Returns `null` at the root rather than throwing,
+ * which is what the real API does and what the caller's guard is written for.
+ * (`pcf-process-flow`'s own copy had both; syncing it on 2026-10-08 found the
+ * template without them.)
+ */
+Element.prototype.closest = function (selector) {
+    assertSupported(selector);
+
+    var node = this;
+
+    while (node) {
+        if (node.tagName !== undefined && matches(node, selector)) {
+            return node;
+        }
+
+        node = node.parentNode;
+    }
+
+    return null;
+};
+
 function createElement(tagName) {
     return new Element(tagName);
 }
@@ -1150,6 +1182,21 @@ function install(global) {
     define('self', global);
     define('navigator', { userAgent: 'dev/dom.js', language: 'en-US' });
     define('FileReader', FileReader);
+
+    /*
+     * A browser has this global, and a control that delegates one listener on a
+     * container reaches for it to narrow the event target before calling
+     * `closest`. Without it the control throws `ReferenceError: Element is not
+     * defined` from inside the bundle — which reads as a bug in the control
+     * rather than as a gap here. (`pcf-process-flow`'s own copy had it; the
+     * template's did not, and syncing that repository on 2026-10-08 found it.)
+     *
+     * Note there is deliberately no `HTMLElement`: this file has one element
+     * class, and defining a second name for it would let a control's
+     * `instanceof HTMLElement` pass here while meaning something this file does
+     * not actually model.
+     */
+    define('Element', Element);
 
     function define(name, value) {
         if (global[name] !== undefined) {
