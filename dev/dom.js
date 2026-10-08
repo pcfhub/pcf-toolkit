@@ -858,8 +858,19 @@ FileReader.prototype.abort = function () {
  * read-only input takes no typing and fires nothing; each helper returns
  * whether the edit happened.
  *
- * Not modelled: `keydown`/`keyup` (dispatch them yourself), undo, drag and
- * drop, and a browser's own spell-check replacement. Autofill's shape is
+ * - `undo(el)` / `redo(el)` — Ctrl+Z / Ctrl+Y: `beforeinput` with
+ *   `historyUndo` / `historyRedo`, **cancelable**. Not cancelled, the browser
+ *   changes **nothing** and fires `input` with the same `inputType`, the value
+ *   as it was and the cursor at 0 — measured on a model-driven form
+ *   2026-09-28 (`pcf-input-mask` P3) in a box the control had rewritten, which
+ *   is the case a suite needs: once a control assigns `value`, Chromium's own
+ *   history no longer matches the box. The rig does not model the browser's
+ *   history for a box nobody rewrote; a suite asserting that undo *works*
+ *   without the control's help is asserting something this file cannot show.
+ *   (`redo` is modelled on `undo`'s measured shape.)
+ *
+ * Not modelled: `keydown`/`keyup` (dispatch them yourself), drag and drop, and
+ * a browser's own spell-check replacement. Autofill's shape is
  * Chromium's as documented, not measured on a form — a control relying on it
  * says so in `SPEC.md`.
  */
@@ -924,6 +935,32 @@ function room(element, replacing) {
     var limit = typeof element.maxLength === 'number' && element.maxLength >= 0 ? element.maxLength : Infinity;
 
     return limit - (element._value.length - replacing);
+}
+
+/*
+ * Undo and redo as a form measured them — see `undo` in the header above.
+ * Returns true when the event was cancelled, which is the only case in which
+ * anything can have happened: uncancelled, the browser changes nothing.
+ */
+function history(element, inputType) {
+    if (!editable(element)) {
+        return false;
+    }
+
+    var before = inputEvent('beforeinput', element, { inputType: inputType, cancelable: true });
+
+    element.dispatchEvent(before);
+
+    if (before.defaultPrevented) {
+        return true;
+    }
+
+    element._selectionStart = 0;
+    element._selectionEnd = 0;
+    element._selectionDirection = 'none';
+    element.dispatchEvent(inputEvent('input', element, { inputType: inputType }));
+
+    return false;
 }
 
 var user = {
@@ -1063,6 +1100,14 @@ var user = {
         element.dispatchEvent({ type: 'compositionend', target: element, data: final, preventDefault: function () {} });
 
         return true;
+    },
+
+    undo: function (element) {
+        return history(element, 'historyUndo');
+    },
+
+    redo: function (element) {
+        return history(element, 'historyRedo');
     },
 
     autofill: function (element, text) {
