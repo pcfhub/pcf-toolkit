@@ -24,8 +24,8 @@
  *
  * What it does not have, it does not pretend to have: nothing here can tell you
  * that a control *looks* right, that a stylesheet applies, or that focus and
- * keyboard order work. Those need `npm start`, `dev/harness.html`, or a real
- * form.
+ * keyboard order work. Those need `npm start`, `dev/harness.html` (pressed
+ * with real keys through `dev/keys.js`), or a real form.
  */
 
 'use strict';
@@ -901,7 +901,9 @@ FileReader.prototype.abort = function () {
  *   without the control's help is asserting something this file cannot show.
  *   (`redo` is modelled on `undo`'s measured shape.)
  *
- * Not modelled: `keydown`/`keyup` (dispatch them yourself), drag and drop, and
+ * Not modelled: `keydown`/`keyup` — dispatch them yourself, or press real keys
+ * against the harness with `dev/keys.js`, which is the only way to show a
+ * press reaching a listener through its parents — drag and drop, and
  * a browser's own spell-check replacement. Autofill's shape is
  * Chromium's as documented, not measured on a form — a control relying on it
  * says so in `SPEC.md`.
