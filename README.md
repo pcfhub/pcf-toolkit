@@ -92,7 +92,7 @@ says so under the field rather than implying the edit is safe.
 | Property | Type | Usage | Default | What it controls |
 | --- | --- | --- | --- | --- |
 | `records` | Dataset | bound | — | The view to render |
-| `pageSize` | Whole.None | input | 25 | Rows per page, clamped to 1–250 |
+| `pageSize` | Whole.None | input | — | Rows per page, clamped to 1–250. Empty keeps the host's own: the user's *Rows per page* on a main grid, the subgrid's setting on a form |
 | `openedRecordId` | SingleLine.Text | output | — | The last record opened from the table |
 
 It declares no `property-set` roles: it renders whatever columns the view

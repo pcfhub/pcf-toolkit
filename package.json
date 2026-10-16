@@ -1,6 +1,6 @@
 {
   "name": "pcf-toolkit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Render a URL column as a real link, on a form and in a view.",
   "license": "MIT",
   "private": true,

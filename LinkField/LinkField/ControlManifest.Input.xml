@@ -7,7 +7,7 @@
   -->
   <control namespace="PCFHub"
            constructor="LinkField"
-           version="0.1.0"
+           version="0.1.1"
            display-name-key="LinkField_Name"
            description-key="LinkField_Desc"
            control-type="standard">

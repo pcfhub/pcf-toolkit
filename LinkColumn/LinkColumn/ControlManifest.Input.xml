@@ -7,7 +7,7 @@
   -->
   <control namespace="PCFHub"
            constructor="LinkColumn"
-           version="0.1.0"
+           version="0.1.1"
            display-name-key="LinkColumn_Name"
            description-key="LinkColumn_Desc"
            control-type="standard">

@@ -1,6 +1,6 @@
 {
   "name": "pcf-toolkit-linkcolumn",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "The LinkColumn control project. Built from the repository root; see ../package.json.",
   "scripts": {
