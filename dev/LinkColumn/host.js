@@ -104,17 +104,24 @@
     var OPERATOR = { Equal: 0, NotEqual: 1, GreaterThan: 2, LessThan: 3, Like: 6, Null: 12 };
 
     var STRINGS = {
-        LinkColumn_Name: 'Link Column',
-        LinkColumn_Empty: 'No records.',
-        LinkColumn_Error: 'The records could not be loaded.',
-        LinkColumn_Loading: 'Loading…',
-        LinkColumn_NoColumns: 'No columns have been chosen for this control.',
-        LinkColumn_Next: 'Next',
-        LinkColumn_Previous: 'Previous',
-        LinkColumn_OpenRecord: 'Open {0}',
-        LinkColumn_SortBy: 'Sort by {0}',
-        LinkColumn_PageStatus: 'Page {0}',
-        LinkColumn_RangeStatus: '{0}–{1} of {2}',
+        LinkColumn_Name: "Link Column",
+        LinkColumn_Desc: "Render a URL column as a link in every row of a view.",
+        Records_DataSet_Name: "Records",
+        PageSize_Name: "Page size",
+        PageSize_Desc: "How many rows to request per page. The platform may clamp large values.",
+        OpenedRecordId_Name: "Opened record ID",
+        OpenedRecordId_Desc: "The ID of the row most recently opened.",
+        LinkColumn_Loading: "Loading records…",
+        LinkColumn_Empty: "No records.",
+        LinkColumn_NoColumns: "No columns are selected for this table.",
+        LinkColumn_Error: "This view could not be loaded.",
+        LinkColumn_Previous: "Previous page",
+        LinkColumn_Next: "Next page",
+        LinkColumn_PageStatus: "Page {0}",
+        LinkColumn_RangeStatus: "{0}–{1} of {2}",
+        LinkColumn_SortBy: "Sort by {0}",
+        LinkColumn_OpenRecord: "Open {0}",
+        LinkColumn_OpenLink: "Open {0}",
     };
 
     var HOSTS = {

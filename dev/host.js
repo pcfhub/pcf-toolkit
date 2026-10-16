@@ -64,8 +64,20 @@
      * looks in production rather than throwing.
      */
     var STRINGS = {
-        LinkField_Name: 'Link Toolkit',
-        LinkField_NoAccess: 'You do not have access to this field.',
+        value_Name: "Value",
+        value_Desc: "The column this control reads and writes.",
+        placeholder_Name: "Placeholder",
+        placeholder_Desc: "Hint text shown while the field is empty.",
+        LinkField_NoAccess: "You do not have access to this value.",
+        LinkField_Name: "Link field",
+        LinkField_Desc: "Shows a URL column as a link you can follow.",
+        linkLabel_Name: "Link text",
+        linkLabel_Desc: "Text to show instead of the address. Empty shows the site name.",
+        LinkField_Open: "Open",
+        LinkField_OpenNamed: "Open {0}",
+        LinkField_Invalid: "Not a web address. Links must start with http:// or https://.",
+        LinkField_Offline: "You appear to be offline. Opening the link may not work.",
+        LinkField_NotPersisted: "This edit will not be kept if you switch tabs.",
     };
 
     /**
