@@ -1186,6 +1186,31 @@ function install(global) {
     define('FileReader', FileReader);
 
     /*
+     * A viewport with one switch. A control that asks `matchMedia` whether the
+     * screen is narrow — pcf-date-range-picker renders one month instead of
+     * two below 36rem — gets `global.__viewport.narrow` as the answer to every
+     * query, and it defaults to the desktop so every existing assertion sees
+     * the layout it was written against. A suite flips it around one render
+     * and back in a `finally`. Listeners are accepted and never fired: a
+     * resize mid-test is not something this rig models, and pretending to
+     * would certify a resize handler nothing has run.
+     */
+    global.__viewport = global.__viewport || { narrow: false };
+
+    define('matchMedia', function (query) {
+        return {
+            media: query,
+            get matches() {
+                return global.__viewport.narrow;
+            },
+            addEventListener: function () {},
+            removeEventListener: function () {},
+            addListener: function () {},
+            removeListener: function () {},
+        };
+    });
+
+    /*
      * A browser has this global, and a control that delegates one listener on a
      * container reaches for it to narrow the event target before calling
      * `closest`. Without it the control throws `ReferenceError: Element is not
